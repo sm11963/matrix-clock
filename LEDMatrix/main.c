@@ -8,11 +8,11 @@
 #include <stdlib.h>
 #include <math.h>
 #include <xc.h>
+#include "gamma.h"
 
 // threading library
 #include "pt_cornell_1_2.h"
 
-int i, j=1;
 #define NPLANES 4
 #define NROWS 16
 #define HEIGHT 32
@@ -25,7 +25,10 @@ int i, j=1;
 #define LAT_PORTA_BIT BIT_1
 #define OE_PORTA_BIT BIT_0
 
-
+int i, j=1, x, y, hue;
+float dy, dx, d;
+UINT16 c;
+UINT8 sat, val;
 int buffsize, allocsize, rotation;
 INT16 *matrixbuff[2];
 BOOL dualbuffers;
@@ -60,6 +63,48 @@ void setup_matrix() {
     ConfigIntTimer2( T2_INT_ON | T2_INT_PRIOR_5 );
     mT2ClearIntFlag();
  }
+
+UINT16 colorHSV(long hue, UINT8 sat, UINT8 val, BOOL gflag) {
+  static UINT8  r, g, b, lo;
+  static UINT16 s1, v1;
+
+  // Hue
+  hue %= 1536;             // -1535 to +1535
+  if(hue < 0) hue += 1536; //     0 to +1535
+  lo = hue & 255;          // Low byte  = primary/secondary color mix
+  switch(hue >> 8) {       // High byte = sextant of colorwheel
+    case 0 : r = 255     ; g =  lo     ; b =   0     ; break; // R to Y
+    case 1 : r = 255 - lo; g = 255     ; b =   0     ; break; // Y to G
+    case 2 : r =   0     ; g = 255     ; b =  lo     ; break; // G to C
+    case 3 : r =   0     ; g = 255 - lo; b = 255     ; break; // C to B
+    case 4 : r =  lo     ; g =   0     ; b = 255     ; break; // B to M
+    default: r = 255     ; g =   0     ; b = 255 - lo; break; // M to R
+  }
+
+  // Saturation: add 1 so range is 1 to 256, allowig a quick shift operation
+  // on the result rather than a costly divide, while the type upgrade to int
+  // avoids repeated type conversions in both directions.
+  s1 = sat + 1;
+  r  = 255 - (((255 - r) * s1) >> 8);
+  g  = 255 - (((255 - g) * s1) >> 8);
+  b  = 255 - (((255 - b) * s1) >> 8);
+
+  // Value (brightness) & 16-bit color reduction: similar to above, add 1
+  // to allow shifts, and upgrade to int makes other conversions implicit.
+  v1 = val + 1;
+  if(gflag) { // Gamma-corrected color?
+    r = gamma[(r * v1) >> 8]; // Gamma correction table maps
+    g = gamma[(g * v1) >> 8]; // 8-bit input to 4-bit output
+    b = gamma[(b * v1) >> 8];
+  } else { // linear (uncorrected) color
+    r = (r * v1) >> 12; // 4-bit results
+    g = (g * v1) >> 12;
+    b = (b * v1) >> 12;
+  }
+  return (r << 12) | ((r & 0x8) << 8) | // 4/4/4 -> 5/6/5
+         (g <<  7) | ((g & 0xC) << 3) |
+         (b <<  1) | ( b        >> 3);
+}
 
 void drawPixel(int x, int y, int c) {
     if((x < 0) || (x >= WIDTH) || (y < 0) || (y >= HEIGHT)) return;
@@ -181,26 +226,35 @@ void main(void) {
     PT_setup();
 
     setup_matrix();
-
-    // === setup system wide interrupts  ========
-    INTEnableSystemMultiVectoredInt();
     
-    for (i=0; i<WIDTH; i++) {
-        for (j=0; j<HEIGHT; j++) {
-            r = (i % 16);
-            if (j%4 == 0) {
-                b = r << 12; // Red
-            } else if (j%4 == 1) {
-                b = r << 7; // Green
-            } else if (j%4 == 2) {
-                b = r << 1; // Blue
+    for(y=0; y < WIDTH; y++) {
+        dy = 15.5 - (float)y;
+        for(x=0; x < HEIGHT; x++) {
+            dx = 15.5 - (float)x;
+            d  = dx * dx + dy * dy;
+            if (d <= (16.5 * 16.5)) { // Inside the circle(ish)?
+                hue = (int)((atan2(-dy, dx) + M_PI) * 1536.0 / (M_PI * 2.0));
+                d = sqrt(d);
+                if(d > 15.5) {
+                    // Do a little pseudo anti-aliasing along perimeter
+                    sat = 255;
+                    val = (int)((1.0 - (d - 15.5)) * 255.0 + 0.5);
+                }
+                else {
+                    // White at center
+                    sat = (int)(d / 15.5 * 255.0 + 0.5);
+                    val = 255;
+                }
+                c = colorHSV(hue, sat, val, 1);
             } else {
-                //b = (r << 12) | (r << 7) | (r << 1); // White
-                b = (r << 12) | (r << 7) | (r << 1); // White
+                c = 0;
             }
-            drawPixel(i,j,b);
+            drawPixel(x, y, c);
         }
     }
+    
+        // === setup system wide interrupts  ========
+    INTEnableSystemMultiVectoredInt();
     
     // ================= Setup input capture ==============================
 
