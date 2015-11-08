@@ -14,7 +14,6 @@
 #include "pt_cornell_1_2.h"
 
 int i, j=1;
-int row, plane;
 #define NPLANES 4
 #define NROWS 16
 #define HEIGHT 32
@@ -32,6 +31,8 @@ int buffsize, allocsize, rotation;
 INT8 *matrixbuff[2];
 BOOL dualbuffers;
 INT8 *ptr;
+volatile INT8 *buffptr;
+volatile int row, plane;
 INT8 r,g,b;
 INT8 curr_bit, limit, backindex;
 
@@ -113,6 +114,8 @@ void drawPixel(int x, int y, int c) {
 /************************* Variable declarations ******************************/
 
 void __ISR(_TIMER_2_VECTOR, IPL5AUTO) LEDMatrixUpdate(void) {
+    INT8 * ptr, end_ptr;
+    INT8 i;
     mPORTASetBits(0b11);
     
     if (++plane >= NPLANES) {
@@ -120,6 +123,7 @@ void __ISR(_TIMER_2_VECTOR, IPL5AUTO) LEDMatrixUpdate(void) {
         
         if (++row >= NROWS) {
             row = 0;
+            buffptr = matrixbuff[1-backindex];
         }
     }
     else if (plane == 1) {
@@ -130,16 +134,32 @@ void __ISR(_TIMER_2_VECTOR, IPL5AUTO) LEDMatrixUpdate(void) {
         if (row & BIT_3) mPORTBSetBits(D_PORTB_BIT);
     }
     
+    ptr = (INT8 *)buffptr;
+    end_ptr = ptr + 32;
     
     WritePeriod2(640);
     WriteTimer2(0);
     mPORTAClearBits(0b11);
     
-    for (i=0; i<32; i++) {
-        mPORTBClearBits(0b111);
-        mPORTBSetBits(plane);
-        mPORTASetBits(BIT_2);
-        mPORTAClearBits(BIT_2);
+    if (plane > 0) {
+        for (i=0; i < WIDTH; i++) {
+            mPORTBClearBits(0xe007);
+            mPORTBSetBits( ((ptr[i]) & 0xe0) << 8 );
+            mPORTBSetBits( ((ptr[i]) & 0x1c) >> 3 );
+            mPORTASetBits(BIT_2);
+            mPORTAClearBits(BIT_2);
+        }
+        
+        buffptr = ptr+32;
+    }
+    else {
+        for (i=0; i < WIDTH; i++) {
+            mPORTBClearBits(0xe007);
+            //mPORTBSetBits( ((ptr[i]) & 0xe0) << 8 );
+            //mPORTBSetBits( ((ptr[i]) & 0x1c) >> 3 );
+            mPORTASetBits(BIT_2);
+            mPORTAClearBits(BIT_2);
+        }
     }
                
     mT2ClearIntFlag();
@@ -161,6 +181,8 @@ void main(void) {
 
     // === setup system wide interrupts  ========
     INTEnableSystemMultiVectoredInt();
+    
+    drawPixel(0,0,0xffff);
     
     // ================= Setup input capture ==============================
 
