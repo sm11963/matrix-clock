@@ -3,7 +3,7 @@
     <type>com.microchip.mplab.nbide.embedded.makeproject</type>
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/make-project/1">
-            <name>Lab4</name>
+            <name>LEDMatrix</name>
             <creation-uuid>8f909aea-fefb-42ae-8021-281f80c9a3a9</creation-uuid>
             <make-project-type>0</make-project-type>
             <c-extensions>c</c-extensions>
