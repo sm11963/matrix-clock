@@ -157,14 +157,24 @@ void drawPixel(int x, int y, int c) {
     }  
 }
 
-/************************* Variable declarations ******************************/
+    
+// 137 us (per line) 
+// 4 interrupts (4*0.675us = 2.7us)
+// 11.6 + 8.8 + 8.0 + 8.0 = 36.4us
+// Total = 39.1us
+// CPU load = 39.1 / 137 = 0.285  
+#define CALLOVERHEAD 30 // actual measured 27
+#define LOOPTIME 300 // actual measured 292
 
+/************************* Variable declarations ******************************/
 void __ISR(_TIMER_2_VECTOR, IPL5AUTO) LEDMatrixUpdate(void) {
     INT16 * ptr, * end_ptr;
     INT16 i, duration;
-    mPORTASetBits(0b11);
     
-    duration = 320 << plane;
+    mPORTASetBits(0b11);  
+    
+    duration = ((LOOPTIME + (CALLOVERHEAD * 2)) << plane) - CALLOVERHEAD;
+    
     
     if (++plane >= NPLANES) {
         plane = 0;
@@ -187,7 +197,7 @@ void __ISR(_TIMER_2_VECTOR, IPL5AUTO) LEDMatrixUpdate(void) {
     
     WritePeriod2(duration);
     WriteTimer2(0);
-    mPORTAClearBits(0b11);
+    mPORTAClearBits(0b1);
     
     if (plane > 0) {
         for (; ptr< end_ptr; ptr++) {
@@ -209,7 +219,8 @@ void __ISR(_TIMER_2_VECTOR, IPL5AUTO) LEDMatrixUpdate(void) {
             mPORTAClearBits(BIT_2);
         }
     }
-               
+     
+    mPORTAClearBits(0b10);
     mT2ClearIntFlag();
 }
 
