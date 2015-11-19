@@ -9,6 +9,7 @@
 #include <math.h>
 #include <xc.h>
 #include "rgb_matrix.h"
+#include "matrix_gfx.h"
 
 // threading library
 #include "pt_cornell_1_2.h"
@@ -60,6 +61,10 @@ void main(void) {
     }    
         // === setup system wide interrupts  ========
     INTEnableSystemMultiVectoredInt();
+    
+    //matrix_drawChar(0,0,'G',COLOR565_RED,COLOR565_BLACK, 1);
+    matrix_setCursor(0, 0);
+    matrix_write('G');
     
     // ================= Setup input capture ==============================
     matrix_swapBuffers(1);

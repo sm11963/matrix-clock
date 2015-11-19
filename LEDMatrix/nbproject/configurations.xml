@@ -8,6 +8,7 @@
       <itemPath>pt_cornell_1_2.h</itemPath>
       <itemPath>gamma.h</itemPath>
       <itemPath>rgb_matrix.h</itemPath>
+      <itemPath>matrix_gfx.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -19,6 +20,7 @@
       <itemPath>main.c</itemPath>
       <itemPath>glcdfont.c</itemPath>
       <itemPath>rgb_matrix.c</itemPath>
+      <itemPath>matrix_gfx.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -181,6 +183,7 @@
         <property key="ToolFirmwareFilePath"
                   value="Press to browse for a specific firmware version"/>
         <property key="ToolFirmwareOption.UseLatestFirmware" value="true"/>
+        <property key="firmware.download.all" value="false"/>
         <property key="memories.configurationmemory" value="true"/>
         <property key="memories.dataflash" value="true"/>
         <property key="memories.eeprom" value="true"/>

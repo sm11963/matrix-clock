@@ -30,6 +30,8 @@ void matrix_init(BOOL dualbuffers) {
     
     plane = MATRIX_NPLANES - 1;
     row = MATRIX_NROWS - 1;
+    _matrix_height = MATRIX_HEIGHT;
+    _matrix_width = MATRIX_WIDTH;
     
     mPORTASetPinsDigitalOut(0b111);
     
@@ -58,6 +60,10 @@ void matrix_swapBuffers(BOOL copy) {
     if(copy)
       memcpy(matrixbuff[backindex], matrixbuff[1-backindex], MATRIX_WIDTH * MATRIX_NROWS * 3 * 2);
   }
+}
+
+UINT16 *matrix_backBuffer() {
+    return matrixbuff[backindex];
 }
 
 // 137 us (per line, roughly 450 Hz frame rate)
@@ -129,12 +135,52 @@ void __ISR(_TIMER_2_VECTOR, IPL5AUTO) matrix_updateDisplay(void) {
     mT2ClearIntFlag();
 }
 
+void matrix_setRotation(unsigned char x) {
+/* Set display matrix_rotation in 90 degree steps
+ * Parameters:
+ *      x: dictate direction of matrix_rotation
+ *          0 = no matrix_rotation (0 degree matrix_rotation)
+ *          1 = rotate 90 degree clockwise
+ *          2 = rotate 180 degree
+ *          3 = rotate 90 degree anticlockwise
+ * Returns: Nothing
+ */
+  matrix_rotation = (x & 3);
+  switch(matrix_rotation) {
+   case 0:
+   case 2:
+    _matrix_width  = MATRIX_HEIGHT;
+    _matrix_height = MATRIX_WIDTH;
+    break;
+   case 1:
+   case 3:
+    _matrix_width  = MATRIX_HEIGHT;
+    _matrix_height = MATRIX_WIDTH;
+    break;
+  }
+}
+
 void matrix_drawPixel(UINT16 x, UINT16 y, UINT16 c) {
     UINT8 r, g, b, curr_bit, limit;
     UINT16 *ptr;
     
-    if((x < 0) || (x >= MATRIX_WIDTH) || (y < 0) || (y >= MATRIX_HEIGHT)) return;
-
+    if((x < 0) || (x >= _matrix_width) || (y < 0) || (y >= _matrix_height)) return;
+    
+    switch(matrix_rotation) {
+        case 1:
+            swap(x, y);
+            x = MATRIX_WIDTH  - 1 - x;
+            break;
+        case 2:
+            x = MATRIX_WIDTH  - 1 - x;
+            y = MATRIX_HEIGHT - 1 - y;
+            break;
+        case 3:
+            swap(x, y);
+            y = MATRIX_HEIGHT - 1 - y;
+            break;
+  }
+    
     // Adafruit_GFX uses 16-bit color in 5/6/5 format, while matrix needs
     // 4/4/4.  Pluck out relevant bits while separating into R,G,B:
     r =  c >> 12;        // RRRRrggggggbbbbb
@@ -252,4 +298,42 @@ UINT16 matrix_colorHSV(long hue, UINT8 sat, UINT8 val, BOOL gflag) {
   return (r << 12) | ((r & 0x8) << 8) | // 4/4/4 -> 5/6/5
          (g <<  7) | ((g & 0xC) << 3) |
          (b <<  1) | ( b        >> 3);
+}
+
+/******************************************************************************
+ * Drawing
+ ******************************************************************************/
+
+inline unsigned char matrix_getRotation(void) {
+/* Returns current rotation of screen
+ *          0 = no matrix_rotation (0 degree matrix_rotation)
+ *          1 = rotate 90 degree clockwise
+ *          2 = rotate 180 degree
+ *          3 = rotate 90 degree anticlockwise
+ */
+  return matrix_rotation;
+}
+
+void matrix_drawFastVLine(INT16 x, INT16 y, INT16 h, UINT16 c) {
+    if (x >= _matrix_width || y >= _matrix_height) return;
+    
+    if((y+h-1) >= _matrix_width) {
+        h = _matrix_height-y;
+    }
+        
+    while  (h--) {
+        matrix_drawPixel(x, y+h, c);
+    }
+}
+
+void matrix_drawFastHLine(INT16 x, INT16 y, INT16 w, UINT16 c) {
+    if (x >= _matrix_width || y >= _matrix_height) return;
+      
+    if((x+w-1) >= _matrix_width) {
+        w = _matrix_width-x;
+    }
+    
+    while  (w--) {
+        matrix_drawPixel(x+w, y, c);
+    }
 }
