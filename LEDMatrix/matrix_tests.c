@@ -58,3 +58,61 @@ void draw_levels() {
         }
     }
 }
+
+const char str[]  = "Pic32 32x32 RGB LED Matrix Scroll test";
+
+INT8 ball[3][4] = {
+      {  3,  0,  1,  1 }, // Initial X,Y pos & velocity for 3 bouncy balls
+      { 17, 15,  1, -1 },
+      { 27,  4, -1,  1 }
+    };
+
+static const UINT16 ballcolor[3] = {
+      0x0080, // Green=1
+      0x0002, // Blue=1
+      0x1000  // Red=1
+    };
+
+void scroll_test_loop() {
+    int    textX   = _matrix_width,
+           textMin = sizeof(str) * -12,
+           hue     = 0;
+    
+    
+    matrix_setTextWrap(false); // Allow text to run off right edge
+    matrix_setTextSize(2);
+
+    while(true) {
+      char i;
+
+      // Clear background
+      matrix_fillScreen(0);
+
+      // Bounce three balls around
+      for(i=0; i<3; i++) {
+        // Draw 'ball'
+        matrix_fillCircle(ball[i][0], ball[i][1], 5, pgm_read_word(&ballcolor[i]));
+        // Update X, Y position
+        ball[i][0] += ball[i][2];
+        ball[i][1] += ball[i][3];
+        // Bounce off edges
+        if((ball[i][0] == 0) || (ball[i][0] == (_matrix_width - 1)))
+          ball[i][2] *= -1;
+        if((ball[i][1] == 0) || (ball[i][1] == (_matrix_height - 1)))
+          ball[i][3] *= -1;
+      }
+
+      // Draw big scrolly text on top
+      matrix_setTextColor(matrix_colorHSV(hue, 255, 255, true));
+      matrix_setCursor(textX, 1);
+      matrix_writeString(str);
+
+      // Move text left (w/wrap), increase hue
+      if((--textX) < textMin) textX = _matrix_width;
+      hue += 7;
+      if(hue >= 1536) hue -= 1536;
+
+      // Update display
+      matrix_swapBuffers(false);
+    }
+}

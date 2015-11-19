@@ -45,6 +45,6 @@ void matrix_setTextSize(unsigned char s);
 void matrix_setTextWrap(char w);
 void matrix_gfx_setRotation(unsigned char r);
 void matrix_write(unsigned char c);
-void matrix_writeString(char* str);    // This is the function to use to write a string
+void matrix_writeString(const char* str);    // This is the function to use to write a string
 
 #endif /* MATRIX_GFX_H */

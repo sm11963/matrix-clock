@@ -9,6 +9,8 @@
       <itemPath>gamma.h</itemPath>
       <itemPath>rgb_matrix.h</itemPath>
       <itemPath>matrix_gfx.h</itemPath>
+      <itemPath>matrix_tests.h</itemPath>
+      <itemPath>matrix_plasma.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -21,6 +23,8 @@
       <itemPath>glcdfont.c</itemPath>
       <itemPath>rgb_matrix.c</itemPath>
       <itemPath>matrix_gfx.c</itemPath>
+      <itemPath>matrix_tests.c</itemPath>
+      <itemPath>matrix_plasma.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

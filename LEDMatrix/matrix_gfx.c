@@ -450,7 +450,7 @@ void matrix_write(unsigned char c){
   }
 }
 
-inline void matrix_writeString(char* str){
+inline void matrix_writeString(const char* str){
 /* Print text onto screen
  * Call matrix_setCursor(), matrix_setTextColor(), matrix_setTextSize()
  *  as necessary before printing

@@ -31,6 +31,14 @@ UINT8 matrix_rotation;
 
 #define swap(a, b) { short t = a; a = b; b = t; }
 #define pgm_read_byte(addr) (*(const unsigned char *)(addr))
+#define pgm_read_word(addr) (*(const unsigned short *)(addr))
+
+#ifndef false
+#define false 0
+#endif
+#ifndef true
+#define true 1
+#endif
 
 void matrix_init(BOOL dualbuffers);
 void matrix_drawPixel(UINT16 x, UINT16 y, UINT16 c);

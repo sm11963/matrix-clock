@@ -304,6 +304,18 @@ UINT16 matrix_colorHSV(long hue, UINT8 sat, UINT8 val, BOOL gflag) {
  * Drawing
  ******************************************************************************/
 
+void matrix_fillScreen(UINT16 c) {
+  if((c == 0x0000) || (c == 0xffff)) {
+    // For black or white, all bits in frame buffer will be identically
+    // set or unset (regardless of weird bit packing), so it's OK to just
+    // quickly memset the whole thing:
+    memset(matrixbuff[backindex], c, MATRIX_WIDTH * MATRIX_NROWS * 3 * 2);
+  } else {
+    // Otherwise, need to handle it the long way:
+    matrix_fillRect(0, 0, _matrix_width, _matrix_height, c);
+  }
+}
+
 inline unsigned char matrix_getRotation(void) {
 /* Returns current rotation of screen
  *          0 = no matrix_rotation (0 degree matrix_rotation)
