@@ -30,6 +30,7 @@ UINT16 _matrix_width, _matrix_height;
 UINT8 matrix_rotation;
 
 #define swap(a, b) { short t = a; a = b; b = t; }
+#define pgm_read_byte(addr) (*(const unsigned char *)(addr))
 
 void matrix_init(BOOL dualbuffers);
 void matrix_drawPixel(UINT16 x, UINT16 y, UINT16 c);

@@ -42,8 +42,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "glcdfont.c"
 #include "rgb_matrix.h"
 
-#define pgm_read_byte(addr) (*(const unsigned char *)(addr))
-
 void matrix_drawCircle(short x0, short y0, short r, unsigned short color) {
 /* Draw a circle outline with center (x0,y0) and radius r, with given color
  * Parameters:

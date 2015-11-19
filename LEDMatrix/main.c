@@ -3,6 +3,8 @@
  * Author:      Sam Miller
  * Target PIC:  PIC32MX250F128B
  */
+#define ENABLE_MATRIX_PLASMA 1
+
 
 #include "config.h"
 #include <stdlib.h>
@@ -11,14 +13,10 @@
 #include "rgb_matrix.h"
 #include "matrix_gfx.h"
 
+#include "matrix_tests.h"
+
 // threading library
 #include "pt_cornell_1_2.h"
-
-int i, j=1, x, y, hue;
-float dy, dx, d;
-UINT16 c;
-UINT8 sat, val;
-INT16 r,g,b;
 
 // === Main  ======================================================
 
@@ -34,31 +32,7 @@ void main(void) {
 
     matrix_init(1);
     
-    for(y=0; y < MATRIX_WIDTH; y++) {
-        dy = 15.5 - (float)y;
-        for(x=0; x < MATRIX_HEIGHT; x++) {
-            dx = 15.5 - (float)x;
-            d  = dx * dx + dy * dy;
-            if (d <= (16.5 * 16.5)) { // Inside the circle(ish)?
-                hue = (int)((atan2(-dy, dx) + M_PI) * 1536.0 / (M_PI * 2.0));
-                d = sqrt(d);
-                if(d > 15.5) {
-                    // Do a little pseudo anti-aliasing along perimeter
-                    sat = 255;
-                    val = (int)((1.0 - (d - 15.5)) * 255.0 + 0.5);
-                }
-                else {
-                    // White at center
-                    sat = (int)(d / 15.5 * 255.0 + 0.5);
-                    val = 255;
-                }
-                c = matrix_colorHSV(hue, sat, val, 1);
-            } else {
-                c = 0;
-            }
-            matrix_drawPixel(x, y, c);
-        }
-    }    
+    draw_colorwheel();
         // === setup system wide interrupts  ========
     INTEnableSystemMultiVectoredInt();
     
@@ -69,7 +43,8 @@ void main(void) {
     // ================= Setup input capture ==============================
     matrix_swapBuffers(1);
 
-    
+    draw_levels();
+    plasma_loop(0);
 
     // round-robin scheduler for threads
     while (1) {
