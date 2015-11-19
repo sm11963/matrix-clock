@@ -7,6 +7,9 @@
 
 #ifndef MATRIX_PLASMA_H
 #define	MATRIX_PLASMA_H
+#include "rgb_matrix.h"
+
+#define dTime_us PBCLK/2000000
 
 /* Continuously loops drawing plasma on the screen */
 void plasma_loop();

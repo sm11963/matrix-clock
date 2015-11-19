@@ -9,7 +9,7 @@ void draw_colorwheel() {
     float dy, dx, d;
     UINT16 c;
     UINT8 sat, val;
-    
+
     for(y=0; y < _matrix_width; y++) {
         dy = 15.5 - (float)y;
         for(x=0; x < _matrix_height; x++) {
@@ -34,13 +34,13 @@ void draw_colorwheel() {
             }
             matrix_drawPixel(x, y, c);
         }
-    }  
+    }
 }
 
 /* Fill screen with various brightness levels of each color */
 void draw_levels() {
     UINT16 i, j, r, b;
-    
+
     for (i=0; i<_matrix_width; i++) {
         for (j=0; j<_matrix_height; j++) {
             r = (i % 16);
@@ -74,13 +74,14 @@ static const UINT16 ballcolor[3] = {
     };
 
 void scroll_test_loop() {
+    int size = 4;
     int    textX   = _matrix_width,
-           textMin = sizeof(str) * -12,
+           textMin = strlen(str) * -6 * size,
            hue     = 0;
-    
-    
+
+
     matrix_setTextWrap(false); // Allow text to run off right edge
-    matrix_setTextSize(2);
+    matrix_setTextSize(size);
 
     while(true) {
       char i;
@@ -104,7 +105,7 @@ void scroll_test_loop() {
 
       // Draw big scrolly text on top
       matrix_setTextColor(matrix_colorHSV(hue, 255, 255, true));
-      matrix_setCursor(textX, 1);
+      matrix_setCursor(textX, 2);
       matrix_writeString(str);
 
       // Move text left (w/wrap), increase hue
@@ -114,5 +115,107 @@ void scroll_test_loop() {
 
       // Update display
       matrix_swapBuffers(false);
+      
+      delay_ms(10);
+    }
+}
+
+void delay_ms(unsigned long i){
+/* Create a software delay about i ms long
+ * Parameters:
+ *      i:  equal to number of milliseconds for delay
+ * Returns: Nothing
+ * Note: Uses Core Timer. Core Timer is cleared at the initialiazion of
+ *      this function. So, applications sensitive to the Core Timer are going
+ *      to be affected
+ */
+    unsigned int j;
+    j = dTime_ms * i;
+    WriteCoreTimer(0);
+    while (ReadCoreTimer() < j);
+}
+
+void shapes_test_loop() {
+    
+    matrix_setTextSize(1);
+
+    while (true) {
+        // draw a pixel in solid white
+        matrix_drawPixel(0, 0, matrix_color333(7, 7, 7));
+        matrix_swapBuffers(false);
+        matrix_fillScreen(COLOR565_BLACK);
+        delay_ms(1000);
+
+        // fix the screen with green
+        matrix_fillRect(0, 0, 32, 32, matrix_color333(0, 7, 0));
+        matrix_swapBuffers(false);
+        matrix_fillScreen(COLOR565_BLACK);
+        delay_ms(1000);
+
+        // draw a box in yellow
+        matrix_drawRect(0, 0, 32, 32, matrix_color333(7, 7, 0));
+        matrix_swapBuffers(false);
+        matrix_fillScreen(COLOR565_BLACK);
+        delay_ms(1000);
+
+        // draw an 'X' in red
+        matrix_drawLine(0, 0, 31, 31, matrix_color333(7, 0, 0));
+        matrix_drawLine(31, 0, 0, 31, matrix_color333(7, 0, 0));
+        matrix_swapBuffers(false);
+        matrix_fillScreen(COLOR565_BLACK);
+        delay_ms(1000);
+
+        // draw a blue circle
+        matrix_drawCircle(10, 10, 10, matrix_color333(0, 0, 7));
+        matrix_swapBuffers(false);
+        matrix_fillScreen(COLOR565_BLACK);
+        delay_ms(1000);
+
+        // fill a violet circle
+        matrix_fillCircle(21, 21, 10, matrix_color333(7, 0, 7));
+        matrix_swapBuffers(false);
+        matrix_fillScreen(COLOR565_BLACK);
+        delay_ms(1000);
+
+        // fill the screen with 'black'
+        matrix_fillScreen(COLOR565_BLACK);
+        matrix_swapBuffers(false);
+        matrix_fillScreen(COLOR565_BLACK);
+
+        // draw some text!
+        matrix_setCursor(1, 0);    // start at top left, with one pixel of spacing
+        matrix_setTextSize(1);     // size 1 == 8 pixels high
+        matrix_setTextWrap(false); // Don't wrap at end of line - will do ourselves
+
+        matrix_setTextColor(matrix_color333(7,7,7));
+        matrix_writeString(" Ada\n");
+        matrix_writeString("fruit\n");
+
+        // print each letter with a rainbow color
+        matrix_setTextColor(matrix_color333(7,0,0));
+        matrix_write('3');
+        matrix_setTextColor(matrix_color333(7,4,0));
+        matrix_write('2');
+        matrix_setTextColor(matrix_color333(7,7,0));
+        matrix_write('x');
+        matrix_setTextColor(matrix_color333(4,7,0));
+        matrix_write('3');
+        matrix_setTextColor(matrix_color333(0,7,0));
+        matrix_write('2');
+        matrix_write('\n');
+
+        matrix_setTextColor(matrix_color333(0,7,7));
+        matrix_write('*');
+        matrix_setTextColor(matrix_color333(0,4,7));
+        matrix_write('R');
+        matrix_setTextColor(matrix_color333(0,0,7));
+        matrix_write('G');
+        matrix_setTextColor(matrix_color333(4,0,7));
+        matrix_write('B');
+        matrix_setTextColor(matrix_color333(7,0,4));
+        matrix_write('*');
+        matrix_swapBuffers(false);
+        matrix_fillScreen(COLOR565_BLACK);
+        delay_ms(1000);
     }
 }

@@ -42,6 +42,14 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "glcdfont.c"
 #include "rgb_matrix.h"
 
+unsigned short matrix_cursor_y = 0;
+unsigned short matrix_cursor_x = 0;
+unsigned short matrix_textsize = 1;
+unsigned short matrix_textcolor = COLOR565_WHITE;
+unsigned short matrix_textbgcolor = COLOR565_BLACK;
+unsigned short matrix_wrap = 0;
+
+
 void matrix_drawCircle(short x0, short y0, short r, unsigned short color) {
 /* Draw a circle outline with center (x0,y0) and radius r, with given color
  * Parameters:
@@ -255,17 +263,10 @@ void matrix_fillRect(short x, short y, short w, short h, unsigned short color) {
     *      color:  16-bit color value
     * Returns:     Nothing
     */
-
-     // rudimentary clipping (drawChar w/big text requires this)
-     if((x >= _matrix_width) || (y >= _matrix_height)) return;
-     if((x + w - 1) >= _matrix_width)  w = _matrix_width  - x;
-     if((y + h - 1) >= _matrix_height) h = _matrix_height - y;
-
-     for(y=h; y>0; y--) {
-       for(x=w; x>0; x--) {
-           matrix_drawPixel(x, y, color);
-       }
-     }
+    int i;
+    for(i=x; i<x+w; i++) {
+        matrix_drawFastVLine(i, y, h, color);
+    }
 }
 
 // Draw a rounded rectangle
@@ -463,11 +464,11 @@ inline void matrix_writeString(const char* str){
 // Draw a character
 void matrix_drawChar(short x, short y, unsigned char c, unsigned short color, unsigned short bg, unsigned char size) {
     char i, j;
-  if((x >= _matrix_width)            || // Clip right
-     (y >= _matrix_height)           || // Clip bottom
-     ((x + 6 * size - 1) < 0) || // Clip left
-     ((y + 8 * size - 1) < 0))   // Clip top
-    return;
+//  if((x >= _matrix_width)            || // Clip right
+//     (y >= _matrix_height)           || // Clip bottom
+//     ((x + 6 * size - 1) < 0) || // Clip left
+//     ((y + 8 * size - 1) < 0))   // Clip top
+//    return;
 
   for (i=0; i<6; i++ ) {
     unsigned char line;

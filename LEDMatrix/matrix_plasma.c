@@ -1,7 +1,23 @@
+#include "matrix_plasma.h"
 #include "matrix_tests.h"
 #include "rgb_matrix.h"
 #include "matrix_gfx.h"
 #include <math.h>
+
+void delay_us(unsigned long i){
+/* Create a software delay about i us long
+ * Parameters:
+ *      i:  equal to number of microseconds for delay
+ * Returns: Nothing
+ * Note: Uses Core Timer. Core Timer is cleared at the initialiazion of
+ *      this function. So, applications sensitive to the Core Timer are going
+ *      to be affected
+ */
+    unsigned int j;
+    j = dTime_us * i;
+    WriteCoreTimer(0);
+    while (ReadCoreTimer() < j);
+}
 
 static const UINT8 sinetab[256] = {
      0,   2,   5,   8,  11,  15,  18,  21,
@@ -83,5 +99,7 @@ void plasma_loop(BOOL use_frames) {
         if (use_frames) {
             matrix_swapBuffers(1);
         }
+        
+        delay_us(100000);
     }
 }

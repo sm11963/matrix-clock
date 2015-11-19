@@ -3,8 +3,6 @@
  * Author:      Sam Miller
  * Target PIC:  PIC32MX250F128B
  */
-#define ENABLE_MATRIX_PLASMA 1
-
 
 #include "config.h"
 #include <stdlib.h>
@@ -13,6 +11,7 @@
 #include "rgb_matrix.h"
 #include "matrix_gfx.h"
 
+#define ENABLE_MATRIX_PLASMA 1
 #include "matrix_tests.h"
 
 // threading library
@@ -32,20 +31,22 @@ void main(void) {
 
     matrix_init(1);
     
-    draw_colorwheel();
         // === setup system wide interrupts  ========
     INTEnableSystemMultiVectoredInt();
     
-    //matrix_drawChar(0,0,'G',COLOR565_RED,COLOR565_BLACK, 1);
-    matrix_setCursor(0, 0);
-    matrix_write('G');
     
     // ================= Setup input capture ==============================
+    
+    
+    //draw_colorwheel();
+    //draw_levels();
+
     matrix_swapBuffers(1);
 
-    draw_levels();
-    plasma_loop(0);
-
+    //plasma_loop(1);
+    scroll_test_loop();
+    //shapes_test_loop();
+    
     // round-robin scheduler for threads
     while (1) {
         _nop();

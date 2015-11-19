@@ -9,7 +9,23 @@
 #define	RGB_MATRIX_H
 
 #define _SUPPRESS_PLIB_WARNING 1
+#define _DISABLE_OPENADC10_CONFIGPORT_WARNING 1
 #include "plib.h"
+
+#ifndef SYSCLK
+#define SYSCLK 40000000
+#else
+    #if SYSCLK != 40000000
+        #warning  System clock should be set to 40 MHz for proper performance
+    #endif
+#endif
+#ifndef PBCLK
+#define PBCLK 40000000
+#else
+    #if PBCLK != 40000000
+        #warning  PB clock should be set to 40 MHz for proper performance
+    #endif
+#endif
 
 #define MATRIX_HEIGHT 32
 #define MATRIX_WIDTH 32

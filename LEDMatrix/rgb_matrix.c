@@ -115,7 +115,7 @@ void __ISR(_TIMER_2_VECTOR, IPL5AUTO) matrix_updateDisplay(void) {
         for (; ptr< end_ptr; ptr++) {
             mPORTBClearBits(0x387);
             mPORTBSetBits( ptr[i] & 0x387 );
-            _nop();
+            _nop(); _nop();
             mPORTASetBits(BIT_2);
             mPORTAClearBits(BIT_2);
         }
@@ -126,7 +126,7 @@ void __ISR(_TIMER_2_VECTOR, IPL5AUTO) matrix_updateDisplay(void) {
         for (i=0; i < MATRIX_WIDTH; i++) {
             mPORTBClearBits(0x387);
             mPORTBSetBits( ((ptr[i] >> 6) & 0x380) | ((ptr[i] >> 4) & 0x7) );
-            _nop();
+            _nop(); _nop();
             mPORTASetBits(BIT_2);
             mPORTAClearBits(BIT_2);
         }

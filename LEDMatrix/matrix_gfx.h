@@ -2,6 +2,7 @@
 #define	MATRIX_GFX_H
 
 #define _SUPPRESS_PLIB_WARNING 1
+#define _DISABLE_OPENADC10_CONFIGPORT_WARNING 1
 #include "plib.h"
 
 // Color definitions
@@ -15,8 +16,11 @@
 #define COLOR565_WHITE   0xFFFF
 
 unsigned short
-  matrix_cursor_y, matrix_cursor_x,
-  matrix_textsize, matrix_textcolor, matrix_textbgcolor,
+  matrix_cursor_y,
+  matrix_cursor_x,
+  matrix_textsize,
+  matrix_textcolor,
+  matrix_textbgcolor,
   matrix_wrap;
 
 void matrix_drawLine(short x0, short y0, short x1, short y1, unsigned short color);
