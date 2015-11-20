@@ -1,11 +1,11 @@
-
 #include "rgb_matrix.h"
-#include "gamma.h"
 
 #define _SUPPRESS_PLIB_WARNING 1
-#include "plib.h"
+#include <plib.h>
 #include <stdlib.h>
 #include <xc.h>
+
+#include "gamma.h"
 
 
 /************************* Variable declarations ******************************/
@@ -49,23 +49,27 @@ void matrix_init(BOOL dualbuffers) {
     // Setup interrupts to handle overflow
     ConfigIntTimer2( T2_INT_ON | T2_INT_PRIOR_5 );
     mT2ClearIntFlag();
- }
+}
 
 void matrix_swapBuffers(BOOL copy) {
-  if(matrixbuff[0] != matrixbuff[1]) {
-    // To avoid 'tearing' display, actual swap takes place in the interrupt
-    // handler, at the end of a complete screen refresh cycle.
-    swapflag = 1;                  // Set flag here, then...
-    while(swapflag) _nop(); // wait for interrupt to clear it
-    if(copy)
-      memcpy(matrixbuff[backindex], matrixbuff[1-backindex], MATRIX_WIDTH * MATRIX_NROWS * 3 * 2);
-  }
+    if (matrixbuff[0] != matrixbuff[1]) {
+        // To avoid 'tearing' display, actual swap takes place in the interrupt
+        // handler, at the end of a complete screen refresh cycle.
+        swapflag = 1;                  // Set flag here, then...
+        while(swapflag) _nop(); // wait for interrupt to clear it
+        if(copy) {
+            memcpy(matrixbuff[backindex], 
+                   matrixbuff[1-backindex], 
+                   MATRIX_WIDTH * MATRIX_NROWS * 3 * 2);
+        }
+    }
 }
 
 UINT16 *matrix_backBuffer() {
     return matrixbuff[backindex];
 }
 
+// @ 40MHz SYSCLK and PBCLK
 // 137 us (per line, roughly 450 Hz frame rate)
 // 4 interrupts (4*0.675us = 2.7us)
 // 11.6 + 8.8 + 8.0 + 8.0 = 36.4us
@@ -145,28 +149,30 @@ void matrix_setRotation(unsigned char x) {
  *          3 = rotate 90 degree anticlockwise
  * Returns: Nothing
  */
-  matrix_rotation = (x & 3);
-  switch(matrix_rotation) {
-   case 0:
-   case 2:
-    _matrix_width  = MATRIX_HEIGHT;
-    _matrix_height = MATRIX_WIDTH;
-    break;
-   case 1:
-   case 3:
-    _matrix_width  = MATRIX_HEIGHT;
-    _matrix_height = MATRIX_WIDTH;
-    break;
-  }
+    matrix_rotation = (x & 3);
+    switch(matrix_rotation) {
+        case 0:
+        case 2:
+            _matrix_width  = MATRIX_HEIGHT;
+            _matrix_height = MATRIX_WIDTH;
+            break;
+        case 1:
+        case 3:
+            _matrix_width  = MATRIX_HEIGHT;
+            _matrix_height = MATRIX_WIDTH;
+            break;
+    }
 }
 
 void matrix_drawPixel(UINT16 x, UINT16 y, UINT16 c) {
     UINT8 r, g, b, curr_bit, limit;
     UINT16 *ptr;
     
-    if((x < 0) || (x >= _matrix_width) || (y < 0) || (y >= _matrix_height)) return;
+    if ((x < 0) || (x >= _matrix_width) || (y < 0) || (y >= _matrix_height)) {
+        return;
+    }
     
-    switch(matrix_rotation) {
+    switch (matrix_rotation) {
         case 1:
             swap(x, y);
             x = MATRIX_WIDTH  - 1 - x;
@@ -179,7 +185,7 @@ void matrix_drawPixel(UINT16 x, UINT16 y, UINT16 c) {
             swap(x, y);
             y = MATRIX_HEIGHT - 1 - y;
             break;
-  }
+   }
     
     // Adafruit_GFX uses 16-bit color in 5/6/5 format, while matrix needs
     // 4/4/4.  Pluck out relevant bits while separating into R,G,B:
@@ -191,27 +197,28 @@ void matrix_drawPixel(UINT16 x, UINT16 y, UINT16 c) {
     curr_bit   = 2;
     limit = 1 << MATRIX_NPLANES;
 
-    if(y < MATRIX_NROWS) {
+    if (y < MATRIX_NROWS) {
         // Data for the upper half of the display is stored in the lower
         // bits of each byte.
         ptr = &matrixbuff[backindex][y * MATRIX_WIDTH * (MATRIX_NPLANES - 1) + x]; // Base addr
         // Plane 0 is a tricky case -- its data is spread about,
         // stored in least two bits not used by the other planes.
         *ptr &= ~0x70;           // Plane 0 R,G mask out in one op
-        if(r & 1) *ptr |=  0x10; // Plane 0 R: 64 bytes ahead, bit 0
-        if(g & 1) *ptr |=  0x20; // Plane 0 G: 64 bytes ahead, bit 1
-        if(b & 1) *ptr |=  0x40; // Plane 0 B: 32 bytes ahead, bit 0
+        if (r & 1) *ptr |=  0x10; // Plane 0 R: 64 bytes ahead, bit 0
+        if (g & 1) *ptr |=  0x20; // Plane 0 G: 64 bytes ahead, bit 1
+        if (b & 1) *ptr |=  0x40; // Plane 0 B: 32 bytes ahead, bit 0
         // The remaining three image planes are more normal-ish.
         // Data is stored in the high 6 bits so it can be quickly
         // copied to the DATAPORT register w/6 output lines.
-        for(; curr_bit < limit; curr_bit <<= 1) {
+        for (; curr_bit < limit; curr_bit <<= 1) {
             *ptr &= ~0x7;            // Mask out R,G,B in one op
             if(r & curr_bit) *ptr |= 0x1; // Plane N R: bit 2
             if(g & curr_bit) *ptr |= 0x2; // Plane N G: bit 3
             if(b & curr_bit) *ptr |= 0x4; // Plane N B: bit 4
             ptr  += MATRIX_WIDTH;                 // Advance to next bit plane
         }
-    } else {
+    }
+    else {
         // Data for the lower half of the display is stored in the upper
         // bits, except for the plane 0 stuff, using 2 least bits.
         ptr = &matrixbuff[backindex][(y - MATRIX_NROWS) * MATRIX_WIDTH * (MATRIX_NPLANES - 1) + x];
@@ -263,10 +270,10 @@ UINT16 matrix_colorHSV(long hue, UINT8 sat, UINT8 val, BOOL gflag) {
   UINT16 s1, v1;
 
   // Hue
-  hue %= 1536;             // -1535 to +1535
-  if(hue < 0) hue += 1536; //     0 to +1535
-  lo = hue & 255;          // Low byte  = primary/secondary color mix
-  switch(hue >> 8) {       // High byte = sextant of colorwheel
+  hue %= 1536;              // -1535 to +1535
+  if (hue < 0) hue += 1536; //     0 to +1535
+  lo = hue & 255;           // Low byte  = primary/secondary color mix
+  switch (hue >> 8) {        // High byte = sextant of colorwheel
     case 0 : r = 255     ; g =  lo     ; b =   0     ; break; // R to Y
     case 1 : r = 255 - lo; g = 255     ; b =   0     ; break; // Y to G
     case 2 : r =   0     ; g = 255     ; b =  lo     ; break; // G to C
@@ -286,11 +293,12 @@ UINT16 matrix_colorHSV(long hue, UINT8 sat, UINT8 val, BOOL gflag) {
   // Value (brightness) & 16-bit color reduction: similar to above, add 1
   // to allow shifts, and upgrade to int makes other conversions implicit.
   v1 = val + 1;
-  if(gflag) { // Gamma-corrected color?
+  if (gflag) { // Gamma-corrected color?
     r = gamma[(r * v1) >> 8]; // Gamma correction table maps
     g = gamma[(g * v1) >> 8]; // 8-bit input to 4-bit output
     b = gamma[(b * v1) >> 8];
-  } else { // linear (uncorrected) color
+  }
+  else { // linear (uncorrected) color
     r = (r * v1) >> 12; // 4-bit results
     g = (g * v1) >> 12;
     b = (b * v1) >> 12;
@@ -310,7 +318,8 @@ void matrix_fillScreen(UINT16 c) {
     // set or unset (regardless of weird bit packing), so it's OK to just
     // quickly memset the whole thing:
     memset(matrixbuff[backindex], c, MATRIX_WIDTH * MATRIX_NROWS * 3 * 2);
-  } else {
+  }
+  else {
     // Otherwise, need to handle it the long way:
     matrix_fillRect(0, 0, _matrix_width, _matrix_height, c);
   }
@@ -329,11 +338,11 @@ inline unsigned char matrix_getRotation(void) {
 void matrix_drawFastVLine(INT16 x, INT16 y, INT16 h, UINT16 c) {
     if (x >= _matrix_width || y >= _matrix_height) return;
     
-    if((y+h-1) >= _matrix_width) {
+    if ((y+h-1) >= _matrix_width) {
         h = _matrix_height-y;
     }
         
-    while  (h--) {
+    while (h--) {
         matrix_drawPixel(x, y+h, c);
     }
 }
@@ -341,11 +350,11 @@ void matrix_drawFastVLine(INT16 x, INT16 y, INT16 h, UINT16 c) {
 void matrix_drawFastHLine(INT16 x, INT16 y, INT16 w, UINT16 c) {
     if (x >= _matrix_width || y >= _matrix_height) return;
       
-    if((x+w-1) >= _matrix_width) {
+    if ((x+w-1) >= _matrix_width) {
         w = _matrix_width-x;
     }
     
-    while  (w--) {
+    while (w--) {
         matrix_drawPixel(x+w, y, c);
     }
 }

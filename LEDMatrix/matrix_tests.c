@@ -1,7 +1,10 @@
 #include "matrix_tests.h"
+
+#include <math.h>
+
 #include "rgb_matrix.h"
 #include "matrix_gfx.h"
-#include <math.h>
+#include "blocking_delay.h"
 
 /* Fill screen with a color wheel */
 void draw_colorwheel() {
@@ -10,15 +13,15 @@ void draw_colorwheel() {
     UINT16 c;
     UINT8 sat, val;
 
-    for(y=0; y < _matrix_width; y++) {
+    for (y=0; y < _matrix_width; y++) {
         dy = 15.5 - (float)y;
-        for(x=0; x < _matrix_height; x++) {
+        for (x=0; x < _matrix_height; x++) {
             dx = 15.5 - (float)x;
             d  = dx * dx + dy * dy;
             if (d <= (16.5 * 16.5)) { // Inside the circle(ish)?
                 hue = (int)((atan2(-dy, dx) + M_PI) * 1536.0 / (M_PI * 2.0));
                 d = sqrt(d);
-                if(d > 15.5) {
+                if (d > 15.5) {
                     // Do a little pseudo anti-aliasing along perimeter
                     sat = 255;
                     val = (int)((1.0 - (d - 15.5)) * 255.0 + 0.5);
@@ -29,12 +32,14 @@ void draw_colorwheel() {
                     val = 255;
                 }
                 c = matrix_colorHSV(hue, sat, val, 1);
-            } else {
+            }
+            else {
                 c = 0;
             }
             matrix_drawPixel(x, y, c);
         }
     }
+    matrix_swapBuffers(false);
 }
 
 /* Fill screen with various brightness levels of each color */
@@ -57,9 +62,11 @@ void draw_levels() {
             matrix_drawPixel(i,j,b);
         }
     }
+    
+    matrix_swapBuffers(false);
 }
 
-const char str[]  = "Pic32 32x32 RGB LED Matrix Scroll test";
+const char str[]  = "Pic32 with Adafruit 32x32 RGB LED Matrix";
 
 INT8 ball[3][4] = {
       {  3,  0,  1,  1 }, // Initial X,Y pos & velocity for 3 bouncy balls
@@ -74,7 +81,7 @@ static const UINT16 ballcolor[3] = {
     };
 
 void scroll_test_loop() {
-    int size = 4;
+    int    size    = 4;
     int    textX   = _matrix_width,
            textMin = strlen(str) * -6 * size,
            hue     = 0;
@@ -84,55 +91,42 @@ void scroll_test_loop() {
     matrix_setTextSize(size);
 
     while(true) {
-      char i;
+        char i;
 
-      // Clear background
-      matrix_fillScreen(0);
+        // Clear background
+        matrix_fillScreen(0);
 
-      // Bounce three balls around
-      for(i=0; i<3; i++) {
-        // Draw 'ball'
-        matrix_fillCircle(ball[i][0], ball[i][1], 5, pgm_read_word(&ballcolor[i]));
-        // Update X, Y position
-        ball[i][0] += ball[i][2];
-        ball[i][1] += ball[i][3];
-        // Bounce off edges
-        if((ball[i][0] == 0) || (ball[i][0] == (_matrix_width - 1)))
-          ball[i][2] *= -1;
-        if((ball[i][1] == 0) || (ball[i][1] == (_matrix_height - 1)))
-          ball[i][3] *= -1;
-      }
+        // Bounce three balls around
+        for (i=0; i<3; i++) {
+            // Draw 'ball'
+            matrix_fillCircle(ball[i][0], ball[i][1], 5, pgm_read_word(&ballcolor[i]));
+            // Update X, Y position
+            ball[i][0] += ball[i][2];
+            ball[i][1] += ball[i][3];
+            // Bounce off edges
+            if ((ball[i][0] == 0) || (ball[i][0] == (_matrix_width - 1))) {
+                ball[i][2] *= -1;
+            }
+            if ((ball[i][1] == 0) || (ball[i][1] == (_matrix_height - 1))) {
+                ball[i][3] *= -1;
+            }
+        }
 
-      // Draw big scrolly text on top
-      matrix_setTextColor(matrix_colorHSV(hue, 255, 255, true));
-      matrix_setCursor(textX, 2);
-      matrix_writeString(str);
+        // Draw big scrolly text on top
+        matrix_setTextColor(matrix_colorHSV(hue, 255, 255, true));
+        matrix_setCursor(textX, 2);
+        matrix_writeString(str);
 
-      // Move text left (w/wrap), increase hue
-      if((--textX) < textMin) textX = _matrix_width;
-      hue += 7;
-      if(hue >= 1536) hue -= 1536;
+        // Move text left (w/wrap), increase hue
+        if ((--textX) < textMin) textX = _matrix_width;
+        hue += 7;
+        if (hue >= 1536) hue -= 1536;
 
-      // Update display
-      matrix_swapBuffers(false);
-      
-      delay_ms(10);
+        // Update display
+        matrix_swapBuffers(false);
+
+        delay_ms(20);
     }
-}
-
-void delay_ms(unsigned long i){
-/* Create a software delay about i ms long
- * Parameters:
- *      i:  equal to number of milliseconds for delay
- * Returns: Nothing
- * Note: Uses Core Timer. Core Timer is cleared at the initialiazion of
- *      this function. So, applications sensitive to the Core Timer are going
- *      to be affected
- */
-    unsigned int j;
-    j = dTime_ms * i;
-    WriteCoreTimer(0);
-    while (ReadCoreTimer() < j);
 }
 
 void shapes_test_loop() {

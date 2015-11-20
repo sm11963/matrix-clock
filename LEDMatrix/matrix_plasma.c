@@ -1,23 +1,10 @@
 #include "matrix_plasma.h"
-#include "matrix_tests.h"
-#include "rgb_matrix.h"
-#include "matrix_gfx.h"
+
 #include <math.h>
 
-void delay_us(unsigned long i){
-/* Create a software delay about i us long
- * Parameters:
- *      i:  equal to number of microseconds for delay
- * Returns: Nothing
- * Note: Uses Core Timer. Core Timer is cleared at the initialiazion of
- *      this function. So, applications sensitive to the Core Timer are going
- *      to be affected
- */
-    unsigned int j;
-    j = dTime_us * i;
-    WriteCoreTimer(0);
-    while (ReadCoreTimer() < j);
-}
+#include "rgb_matrix.h"
+#include "matrix_gfx.h"
+#include "blocking_delay.h"
 
 static const UINT8 sinetab[256] = {
      0,   2,   5,   8,  11,  15,  18,  21,
@@ -55,13 +42,13 @@ static const UINT8 sinetab[256] = {
 };
 
 const float radius1  = 16.3, radius2  = 23.0, radius3  = 40.8, radius4  = 44.2,
-            centerx1 = 16.1, centerx2 = 11.6, centerx3 = 23.4, centerx4 =  4.1, 
+            centerx1 = 16.1, centerx2 = 11.6, centerx3 = 23.4, centerx4 =  4.1,
             centery1 =  8.7, centery2 =  6.5, centery3 = 14.0, centery4 = -2.9;
 float       angle1   =  0.0, angle2   =  0.0, angle3   =  0.0, angle4   =  0.0;
 long        hueShift =  0;
 
 /* Continuously loops drawing plasma on the screen */
-void plasma_loop(BOOL use_frames) {
+void plasma_loop() {
     while (1) {
         int           x1, x2, x3, x4, y1, y2, y3, y4, sx1, sx2, sx3, sx4;
         unsigned char x, y;
@@ -78,6 +65,7 @@ void plasma_loop(BOOL use_frames) {
 
         for(y=0; y<_matrix_height; y++) {
           x1 = sx1; x2 = sx2; x3 = sx3; x4 = sx4;
+
           for(x=0; x<_matrix_width; x++) {
             value = hueShift
               + (UINT8)pgm_read_byte(sinetab + (UINT8)((x1 * x1 + y1 * y1) >> 2))
@@ -87,6 +75,7 @@ void plasma_loop(BOOL use_frames) {
             matrix_drawPixel(x, y, matrix_colorHSV(value * 3, 255, 255, 1));
             x1--; x2--; x3--; x4--;
           }
+
           y1--; y2--; y3--; y4--;
         }
 
@@ -95,11 +84,10 @@ void plasma_loop(BOOL use_frames) {
         angle3 += 0.13;
         angle4 -= 0.15;
         hueShift += 2;
-        
-        if (use_frames) {
-            matrix_swapBuffers(1);
-        }
-        
-        delay_us(100000);
+
+        matrix_swapBuffers(1);
+
+        delay_ms(25);
     }
 }
+

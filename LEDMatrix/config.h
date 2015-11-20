@@ -8,40 +8,26 @@
 
 #ifndef CONFIG_H
 #define	CONFIG_H
+
 #define _SUPPRESS_PLIB_WARNING 1
 #define _DISABLE_OPENADC10_CONFIGPORT_WARNING 1
 #include <plib.h>
 // serial stuff
 #include <stdio.h>
 
-//=============================================================
+// Ensure the configuration settings are only included for the main application
+#ifdef MAIN_APPLICATION
 
-// 40 MHz
+// Set both the system and PB frequency to 40 MHz
 #pragma config FNOSC = FRCPLL, POSCMOD = OFF
-#pragma config FPLLIDIV = DIV_2, FPLLMUL = MUL_20 //40 MHz
-#pragma config FPBDIV = DIV_1, FPLLODIV = DIV_2 // PB 40 MHz
+#pragma config FPLLIDIV = DIV_2, FPLLMUL = MUL_20
+#pragma config FPBDIV = DIV_1, FPLLODIV = DIV_2
 #pragma config FWDTEN = OFF,  FSOSCEN = OFF, JTAGEN = OFF
 
-#define SYS_FREQ 40000000
+#endif /* MAIN_APPLICATION */
 
-//==============================================================
-
-// Protothreads configure
-
-// IF use_vref_debug IS defined, pin 25 is Vref output
-//#define use_vref_debug
-
-// IF use_uart_serial IS defined, pin 21 and pin 22 are used by the uart
-//#define use_uart_serial
-//#define BAUDRATE 9600 // must match PC terminal emulator setting
-
-/////////////////////////////////
-// set up clock parameters
-// system cpu clock
-#define sys_clock SYS_FREQ
-
-// sys_clock/FPBDIV
-#define pb_clock sys_clock // divide by one in this case
+// Define clock speed for use by reset of the applications
+#define SYSCLK 40000000
+#define PBCLK SYSCLK    // FPBDIV is DIV_1
 
 #endif	/* CONFIG_H */
-

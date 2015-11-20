@@ -1,6 +1,9 @@
 /* 
  * File:   matrix_tests.h
  * Author: smiller
+ * 
+ * Adapted from corresponding examples: 
+ * https://github.com/adafruit/RGB-matrix-Panel/tree/master/examples
  *
  * Created on November 19, 2015, 1:34 PM
  */
@@ -10,9 +13,8 @@
 
 #include "rgb_matrix.h"
 
-// For delay_ms definition
-#define dTime_ms PBCLK/2000
-
+// Plasma demo is contained in separate file to keep things neat
+#include "matrix_plasma.h"
 
 /* Fill screen with a color wheel */
 void draw_colorwheel();
@@ -27,11 +29,6 @@ void scroll_test_loop();
 /* Infinite loop that iterates through each of the possible graphics that
  * can be drawn on the matrix */
 void shapes_test_loop();
-
-// Include the plasma test if we elect to use it
-#ifdef ENABLE_MATRIX_PLASMA
-#include "matrix_plasma.h"
-#endif
 
 #endif	/* MATRIX_TESTS_H */
 

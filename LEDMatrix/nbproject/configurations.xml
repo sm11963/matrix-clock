@@ -11,6 +11,8 @@
       <itemPath>matrix_gfx.h</itemPath>
       <itemPath>matrix_tests.h</itemPath>
       <itemPath>matrix_plasma.h</itemPath>
+      <itemPath>blocking_delay.h</itemPath>
+      <itemPath>glcdfont.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -20,11 +22,11 @@
                    displayName="Source Files"
                    projectFiles="true">
       <itemPath>main.c</itemPath>
-      <itemPath>glcdfont.c</itemPath>
       <itemPath>rgb_matrix.c</itemPath>
       <itemPath>matrix_gfx.c</itemPath>
       <itemPath>matrix_tests.c</itemPath>
       <itemPath>matrix_plasma.c</itemPath>
+      <itemPath>blocking_delay.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -33,7 +35,6 @@
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
-    <Elem>D:/Documents/Cornell 4th Year/ECE 4760 - Microcontrollers/Adafruit_TFT.X</Elem>
     <Elem>.</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>

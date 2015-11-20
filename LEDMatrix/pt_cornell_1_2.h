@@ -607,7 +607,7 @@ do { static int i ; \
 // UART parameters
 
 #define PB_DIVISOR (1 << OSCCONbits.PBDIV) // read the peripheral bus divider, FPBDIV
-#define PB_FREQ sys_clock/PB_DIVISOR // periperhal bus frequency
+#define PB_FREQ SYSCLK/PB_DIVISOR // periperhal bus frequency
 #define clrscr() printf( "\x1b[2J")
 #define home()   printf( "\x1b[H")
 #define pcr()    printf( '\r')
@@ -738,7 +738,7 @@ void PT_setup (void)
     // Given the options, this function will change the flash wait states, RAM
     // wait state and enable prefetch cache but will not change the PBDIV.
     // The PBDIV value is already set via the pragma FPBDIV option above..
-    SYSTEMConfig(sys_clock, SYS_CFG_WAIT_STATES | SYS_CFG_PCACHE);
+    SYSTEMConfig(SYSCLK, SYS_CFG_WAIT_STATES | SYS_CFG_PCACHE);
 
   ANSELA =0; //make sure analog is cleared
   ANSELB =0;
@@ -768,7 +768,7 @@ void PT_setup (void)
   // ===Set up timer5 ======================
   // timer 5: on,  interrupts, internal clock, 
   // set up to count millsec
-  OpenTimer5(T5_ON  | T5_SOURCE_INT | T5_PS_1_1 , pb_clock/1000);
+  OpenTimer5(T5_ON  | T5_SOURCE_INT | T5_PS_1_1 , PBCLK/1000);
   // set up the timer interrupt with a priority of 2
   ConfigIntTimer5(T5_INT_ON | T5_INT_PRIOR_2);
   mT5ClearIntFlag(); // and clear the interrupt flag

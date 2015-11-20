@@ -15,17 +15,17 @@
 #define COLOR565_YELLOW  0xFFE0
 #define COLOR565_WHITE   0xFFFF
 
-unsigned short
-  matrix_cursor_y,
-  matrix_cursor_x,
-  matrix_textsize,
-  matrix_textcolor,
-  matrix_textbgcolor,
+extern unsigned short
+  matrix_cursor_y, matrix_cursor_x,
+  matrix_textsize, matrix_textcolor, matrix_textbgcolor,
   matrix_wrap;
 
 void matrix_drawLine(short x0, short y0, short x1, short y1, unsigned short color);
 void matrix_drawRect(short x, short y, short w, short h, unsigned short color);
 void matrix_fillRect(short x, short y, short w, short h, unsigned short color);
+void matrix_drawRoundRect(short x0, short y0, short w, short h,
+      short radius, unsigned short color);
+void matrix_fillRoundRect(short x0, short y0, short w, short h, short radius, unsigned short color);
 
 void matrix_drawCircle(short x0, short y0, short r, unsigned short color);
 void matrix_drawCircleHelper(short x0, short y0, short r, unsigned char cornername,
@@ -33,22 +33,22 @@ void matrix_drawCircleHelper(short x0, short y0, short r, unsigned char cornerna
 void matrix_fillCircle(short x0, short y0, short r, unsigned short color);
 void matrix_fillCircleHelper(short x0, short y0, short r, unsigned char cornername,
       short delta, unsigned short color);
+
 void matrix_drawTriangle(short x0, short y0, short x1, short y1,
       short x2, short y2, unsigned short color);
 void matrix_fillTriangle(short x0, short y0, short x1, short y1,
       short x2, short y2, unsigned short color);
-void matrix_drawRoundRect(short x0, short y0, short w, short h,
-      short radius, unsigned short color);
-void matrix_fillRoundRect(short x0, short y0, short w, short h, short radius, unsigned short color);
+
 void matrix_drawBitmap(short x, short y, const unsigned char *bitmap, short w, short h, unsigned short color);
+
 void matrix_drawChar(short x, short y, unsigned char c, unsigned short color, unsigned short bg, unsigned char size);
 void matrix_setCursor(short x, short y);
+void matrix_write(unsigned char c);
+void matrix_writeString(const char* str);    // This is the function to use to write a string
+
 void matrix_setTextColor(unsigned short c);
 void matrix_setTextColor2(unsigned short c, unsigned short bg);
 void matrix_setTextSize(unsigned char s);
 void matrix_setTextWrap(char w);
-void matrix_gfx_setRotation(unsigned char r);
-void matrix_write(unsigned char c);
-void matrix_writeString(const char* str);    // This is the function to use to write a string
 
 #endif /* MATRIX_GFX_H */
