@@ -76,11 +76,12 @@ UINT16 *matrix_backBuffer() {
 // Total = 39.1us
 // CPU load = 39.1 / 137 = 0.285  
 #define CALLOVERHEAD 30 // actual measured 27
-#define LOOPTIME 300 // actual measured 292
+#define LOOPTIME 360 // actual measured 292
 
 void __ISR(_TIMER_2_VECTOR, IPL5AUTO) matrix_updateDisplay(void) {
-    INT16 *ptr, *end_ptr;
-    INT16 i, duration;
+    UINT16 *ptr;
+    UINT16 *end_ptr;
+    UINT16 i, duration;
     
     mPORTASetBits(0x1);  
     
@@ -108,7 +109,7 @@ void __ISR(_TIMER_2_VECTOR, IPL5AUTO) matrix_updateDisplay(void) {
         if (row & BIT_3) mPORTBSetBits(MATRIX_D_PORTB_BIT);
     }
     
-    ptr = (INT16 *)buffptr;
+    ptr = (UINT16 *)buffptr;
     end_ptr = ptr + 32;
     
     WritePeriod2(duration);
@@ -119,7 +120,7 @@ void __ISR(_TIMER_2_VECTOR, IPL5AUTO) matrix_updateDisplay(void) {
         for (; ptr< end_ptr; ptr++) {
             mPORTBClearBits(0x387);
             mPORTBSetBits( ptr[i] & 0x387 );
-            _nop(); _nop();
+            _nop(); //_nop();
             mPORTASetBits(BIT_2);
             mPORTAClearBits(BIT_2);
         }
@@ -130,7 +131,7 @@ void __ISR(_TIMER_2_VECTOR, IPL5AUTO) matrix_updateDisplay(void) {
         for (i=0; i < MATRIX_WIDTH; i++) {
             mPORTBClearBits(0x387);
             mPORTBSetBits( ((ptr[i] >> 6) & 0x380) | ((ptr[i] >> 4) & 0x7) );
-            _nop(); _nop();
+            _nop(); //_nop();
             mPORTASetBits(BIT_2);
             mPORTAClearBits(BIT_2);
         }
