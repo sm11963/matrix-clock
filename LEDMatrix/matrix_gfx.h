@@ -42,6 +42,7 @@ void matrix_fillTriangle(short x0, short y0, short x1, short y1,
 void matrix_drawBitmap(short x, short y, const unsigned char *bitmap, short w, short h, unsigned short color);
 
 void matrix_drawChar(short x, short y, unsigned char c, unsigned short color, unsigned short bg, unsigned char size);
+void matrix_draw3x5Char(short x, short y, unsigned char c, unsigned short color, unsigned short bg, unsigned char size);
 void matrix_setCursor(short x, short y);
 void matrix_write(unsigned char c);
 void matrix_writeString(const char* str);    // This is the function to use to write a string

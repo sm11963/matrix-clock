@@ -40,8 +40,9 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "matrix_gfx.h"
 
-#include "glcdfont.h"
 #include "rgb_matrix.h"
+#include "font_3x5.h"
+#include "font_5x7.h"
 
 unsigned short matrix_cursor_y    = 0;
 unsigned short matrix_cursor_x    = 0;
@@ -466,6 +467,50 @@ inline void matrix_writeString(const char* str){
     }
 }
 
+void matrix_draw3x5Char(short x, short y, unsigned char c, unsigned short color, unsigned short bg, unsigned char size) {
+    static const int cw=4, ch=6;   // Character width and height
+    static const int bxw=3, bxh=5; // Character bounding box
+    
+    char i, j;
+    if ((x >= _matrix_width)      || // Clip right
+        (y >= _matrix_height)     || // Clip bottom
+        ((x + cw * size - 1) < 0)  || // Clip left
+        ((y + ch * size - 1) < 0)) {  // Clip top
+        return;
+    }
+    
+    for (i=0; i<cw; i++ ) {
+        unsigned char line;
+        if (i == cw-1) {
+            line   = 0x0;
+        }
+        else {
+            line = pgm_read_byte(font_3x5+(c*bxw)+i);
+            for ( j = 0; j<ch; j++) {
+                if (line & 0x1) {
+                    if (size == 1) {// default size
+                        matrix_drawPixel(x+i, y+j, color);
+                    }
+                    else {  // big size
+                        matrix_fillRect(x+(i*size), y+(j*size), 
+                                        size, size, color);
+                    }
+                }
+                else if (bg != color) {
+                    if (size == 1) { // default size
+                        matrix_drawPixel(x+i, y+j, bg);
+                    }
+                    else {  // big size
+                        matrix_fillRect(x+i*size, y+j*size, size, size, bg);
+                    }
+                }
+                line >>= 1;
+            }
+        }
+    }
+}
+
+
 // Draw a character
 void matrix_drawChar(short x, short y, unsigned char c, unsigned short color, unsigned short bg, unsigned char size) {
     char i, j;
@@ -482,7 +527,7 @@ void matrix_drawChar(short x, short y, unsigned char c, unsigned short color, un
             line   = 0x0;
         }
         else {
-            line = pgm_read_byte(font+(c*5)+i);
+            line = pgm_read_byte(font_5x7+(c*5)+i);
             for ( j = 0; j<8; j++) {
                 if (line & 0x1) {
                     if (size == 1) {// default size

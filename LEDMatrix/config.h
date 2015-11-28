@@ -19,10 +19,15 @@
 #ifdef MAIN_APPLICATION
 
 // Set both the system and PB frequency to 40 MHz
-#pragma config FNOSC = FRCPLL, POSCMOD = OFF
-#pragma config FPLLIDIV = DIV_2, FPLLMUL = MUL_20
-#pragma config FPBDIV = DIV_1, FPLLODIV = DIV_2
-#pragma config FWDTEN = OFF,  FSOSCEN = OFF, JTAGEN = OFF
+#pragma config FNOSC = FRCPLL
+#pragma config POSCMOD = OFF
+#pragma config FPLLIDIV = DIV_2
+#pragma config FPLLMUL = MUL_20
+#pragma config FPBDIV = DIV_1
+#pragma config FPLLODIV = DIV_2
+#pragma config FWDTEN = OFF
+#pragma config FSOSCEN = OFF
+#pragma config JTAGEN = OFF
 
 #endif /* MAIN_APPLICATION */
 

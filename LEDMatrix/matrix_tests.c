@@ -31,7 +31,7 @@ void draw_colorwheel() {
                     sat = (int)(d / 15.5 * 255.0 + 0.5);
                     val = 255;
                 }
-                c = matrix_colorHSV(hue, sat, val, 1);
+                c = matrix_colorHSV(hue, sat, val, true);
             }
             else {
                 c = 0;

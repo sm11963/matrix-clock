@@ -33,7 +33,7 @@ void matrix_init(BOOL dualbuffers) {
     _matrix_height = MATRIX_HEIGHT;
     _matrix_width = MATRIX_WIDTH;
     
-    mPORTASetPinsDigitalOut(0b111);
+    mPORTASetPinsDigitalOut(BIT_0|BIT_1);
     
     mPORTBClearBits(MATRIX_A_PORTB_BIT|MATRIX_B_PORTB_BIT
                    |MATRIX_C_PORTB_BIT|MATRIX_D_PORTB_BIT);
@@ -42,7 +42,7 @@ void matrix_init(BOOL dualbuffers) {
     
     // 0,1,2,3 & 5 & 8,9 & 13 14 15 (1110|0011|0010|1111)
     mPORTBClearBits(0x387);
-    mPORTBSetPinsDigitalOut(0x387);
+    mPORTBSetPinsDigitalOut(0x387 | BIT_15);
     
     // Open timer 2 with prescalar 1 and max value
     OpenTimer2(T2_ON | T2_SOURCE_INT | T2_PS_1_1, 100);
@@ -83,7 +83,7 @@ void __ISR(_TIMER_2_VECTOR, IPL5AUTO) matrix_updateDisplay(void) {
     UINT16 *end_ptr;
     UINT16 i, duration;
     
-    mPORTASetBits(0x1);  
+    mPORTASetBits(BIT_1);  
     
     duration = ((LOOPTIME + (CALLOVERHEAD * 2)) << plane) - CALLOVERHEAD;
     
@@ -114,15 +114,15 @@ void __ISR(_TIMER_2_VECTOR, IPL5AUTO) matrix_updateDisplay(void) {
     
     WritePeriod2(duration);
     WriteTimer2(0);
-    mPORTAClearBits(0x1);
+    mPORTAClearBits(BIT_1);
     
     if (plane > 0) {
         for (; ptr< end_ptr; ptr++) {
             mPORTBClearBits(0x387);
-            mPORTBSetBits( ptr[i] & 0x387 );
-            _nop(); //_nop();
-            mPORTASetBits(BIT_2);
-            mPORTAClearBits(BIT_2);
+            mPORTBSetBits( *ptr & 0x387 );
+            _nop(); _nop();
+            mPORTBSetBits(BIT_15);
+            mPORTBClearBits(BIT_15);
         }
         
         buffptr = ptr;
@@ -131,9 +131,9 @@ void __ISR(_TIMER_2_VECTOR, IPL5AUTO) matrix_updateDisplay(void) {
         for (i=0; i < MATRIX_WIDTH; i++) {
             mPORTBClearBits(0x387);
             mPORTBSetBits( ((ptr[i] >> 6) & 0x380) | ((ptr[i] >> 4) & 0x7) );
-            _nop(); //_nop();
-            mPORTASetBits(BIT_2);
-            mPORTAClearBits(BIT_2);
+            _nop(); _nop();
+            mPORTBSetBits(BIT_15);
+            mPORTBClearBits(BIT_15);
         }
     }
      
