@@ -35,23 +35,23 @@ static const char min_end_pnts[] = {
 };
 
 static const char* days_short[] = {
+    "SUN",
     "MON",
     "TUE",
     "WED",
     "THU",
     "FRI",
-    "SAT",
-    "SUN"
+    "SAT"
 };
 
 static const char* days_long[] = {
+    "Sunday",
     "Monday",
     "Tuesday",
     "Wednsday",
     "Thursday",
     "Friday",
-    "Saturday",
-    "Sunday"
+    "Saturday"
 };
 
 static const char* months_long[] = {
@@ -63,7 +63,8 @@ static const char* months_long[] = {
     "June",
     "July",
     "August",
-    "May",
+    "Septmber",
+    "October",
     "November",
     "December"
 };
@@ -78,6 +79,7 @@ static const char* months_short[] = {
     "JUL",
     "AUG",
     "SEP",
+    "OCT",
     "NOV",
     "DEC"
 };
@@ -92,93 +94,17 @@ void rtcc_init() {
     rtccTime tm;
     rtccDate dt;
     
-    RtccInit();
-
-    while(RtccGetClkStat() != RTCC_CLK_ON);
-    
     tm.l=0x00;
-    tm.sec=0x55;                                                                 
-    tm.min=0x55;
-    tm.hour=0x15;
+    tm.sec=0x50;                                                                 
+    tm.min=0x59;
+    tm.hour=0x23;
 
-    dt.wday=0x02;
-    dt.mday=0x15;
-    dt.mon=0x09;
-    dt.year=0x09;
-        
+    dt.wday=0x6;
+    dt.mday=0x28;
+    dt.mon=0x11;
+    dt.year=0x15;
+    
     RtccOpen(tm.l, dt.l, 0);
-}
-
-volatile BOOL enabled = 1;
-
-void test() {
-    INTDisableInterrupts();
-
-    rtccTime tm,tm1,starttm; // time structure
-    rtccDate dt,dt1; // date structure
-
-    mPORTASetPinsDigitalOut(BIT_0);
-    
-    RtccInit();
-
-    while(RtccGetClkStat() != RTCC_CLK_ON); //espera que el SOSC este corriendo
-    
-    tm.l=0x00;
-    tm.sec=0x30;                                                                 
-    tm.min=0x55;
-    tm.hour=0x15;
-
-    dt.wday=0x02;
-    dt.mday=0x15;
-    dt.mon=0x09;
-    dt.year=0x09;
-
-    RtccSetTimeDate(tm.l, dt.l);
-    
-    tm1.l = RtccGetTime();
-    dt1.l = RtccGetDate();
-    
-    RtccOpen(tm.l, dt.l, 0);  //fijo hora, fecha y calibracion
-
-    // another way to see the RTCC is running: check the SYNC bit
-    while(mRtccGetSync());    // wait sync to be low
-    while(!mRtccGetSync());    // wait to be high
-    while(mRtccGetSync());    // wait sync to be low again
-
-    do
-    {
-        RtccGetTimeDate(&tm, &dt);// get current time and date
-    }while((tm.sec&0xf)>0x7);// don't want to have minute or BCD rollover
-        
-    INTEnableSystemMultiVectoredInt();
-    
-    // get current time
-    starttm.l=RtccGetTime();
-    
-//    while(1) {
-//        do{
-//            tm.l=RtccGetTime();
-//        } while(tm.sec==starttm.sec);
-//     
-//        // reset starting time
-//        starttm.sec = tm.sec;
-//      
-//        // toggle leds
-//        if (enabled) ledtoggle();
-//    }
-}
-
-void draw_time(rtccTime tm) {
-    char str[16];
-    // Erase block
-    matrix_drawRect(0,0,32,16,COLOR565_BLACK);
-    
-    sprintf(str, "%2x:%02x\n:%02x", tm.hour, tm.min, tm.sec);
-    
-    matrix_setCursor(0,0);
-    matrix_setTextWrap(false);
-    matrix_writeString(str);
-    matrix_swapBuffers(true);
 }
 
 unsigned char bcd2char(unsigned char x) {
@@ -193,6 +119,18 @@ unsigned long bcdTime2DecTime(rtccTime tm) {
     return tm.l;
 }
 
+unsigned char twentyFour2TwelveHour(unsigned char hour) {
+    if (hour == 0) {
+        return 12;
+    }
+    else if (hour > 12) {
+        return hour - 12;
+    }
+    else {
+        return hour;
+    }
+}
+
 unsigned long bcdDate2DecDate(rtccDate dt) {
     dt.mday = bcd2char(dt.mday);
     dt.mon = bcd2char(dt.mon);
@@ -204,16 +142,16 @@ unsigned long bcdDate2DecDate(rtccDate dt) {
 void draw_dtime(rtccTime dec_tm, rtccDate dec_dt) {
     char time_buf[10];
     
-    char* month_str = months_long[dec_dt.mon - 1];
+    const char* month_str = months_long[dec_dt.mon - 1];
     
     matrix_fillScreen(COLOR565_BLACK);
     matrix_setCursor((8-strlen(month_str))<<1,2);
-    matrix_setTextColor(matrix_color444(4,4,4));
+    matrix_setTextColor(matrix_color444(5,5,5));
     matrix_write3x5String(months_long[dec_dt.mon - 1]);
 
-    matrix_setCursor(1,11);
     matrix_setTextColor(0xffff);
-    sprintf(time_buf, "%2d:%02d", dec_tm.hour, dec_tm.min);
+    sprintf(time_buf, "%d:%02d", twentyFour2TwelveHour(dec_tm.hour), dec_tm.min);
+    matrix_setCursor(((5-strlen(time_buf))*3)+1,11);
     matrix_writeString(time_buf);
 
     if (dec_tm.sec < 30) {
@@ -229,58 +167,14 @@ void draw_dtime(rtccTime dec_tm, rtccDate dec_dt) {
     }
 
     matrix_setCursor(0,25);
-    matrix_setTextColor(matrix_color444(4,4,4));
+    matrix_setTextColor(matrix_color444(5,5,5));
     sprintf(time_buf, " %s %-2d ", days_short[dec_dt.wday], dec_dt.mday);
-    matrix_write3x5String(" FRI 14 ");
+    matrix_write3x5String(time_buf);
 
     matrix_swapBuffers(FALSE);
 }
 
-void display_time() {
-    static rtccTime curr_tm;
-    while (true) {
-        curr_tm.l = RtccGetTime();
-        
-        draw_time(curr_tm);
-    }
-}
-
-void display_date() {
-    int secs = 0;
-    
-    while (TRUE) {
-        matrix_fillScreen(COLOR565_BLACK);
-        matrix_setCursor(2,2);
-        matrix_setTextColor(0x738e);
-        matrix_write3x5String("January");
-
-        matrix_setCursor(1,12);
-        matrix_setTextColor(0xffff);
-        matrix_writeString("24:02");
-
-        if (secs < 30) {
-            matrix_drawLine(1,20,secs+1,20,matrix_color444(4,0,0));
-        }
-        else {
-            matrix_drawLine(1,20,30,20,matrix_color444(4,0,0));
-            matrix_drawLine(1,21,secs-29,21, matrix_color444(4,0,0));
-        }
-        
-        if (++secs > 59) {
-            secs = 0;
-        }
-        
-        matrix_setCursor(0,25);
-        matrix_setTextColor(0x738e);
-        matrix_write3x5String(" FRI 14 ");
-
-        matrix_swapBuffers(false);
-        
-        delay_ms(500);
-    }
-}
-
-void get_end_point(int idx, const char* end_pnts, unsigned int num_pnts, int* point) {
+void get_end_point(int idx, const char* end_pnts, unsigned int num_pnts, char* point) {
     int i = idx % num_pnts;
     int x = end_pnts[i*2];
     int y = end_pnts[(i*2)+1];
@@ -305,60 +199,9 @@ void get_end_point(int idx, const char* end_pnts, unsigned int num_pnts, int* po
     point[1] = y;
 }
 
-void display_analog() {
-    matrix_drawCircle(16,16,15,COLOR565_BLUE);
-    matrix_drawPixel(16,1,COLOR565_CYAN);
-    matrix_drawPixel(24,3,COLOR565_CYAN);
-    matrix_drawPixel(29,8,COLOR565_CYAN);
-    matrix_drawPixel(31,16,COLOR565_CYAN);
-    matrix_drawPixel(29,24,COLOR565_CYAN);
-    matrix_drawPixel(24,29,COLOR565_CYAN);
-    matrix_drawPixel(16,31,COLOR565_CYAN);
-    matrix_drawPixel(8,29,COLOR565_CYAN);
-    matrix_drawPixel(3,24,COLOR565_CYAN);
-    matrix_drawPixel(1,16,COLOR565_CYAN);
-    matrix_drawPixel(3,8,COLOR565_CYAN);
-    matrix_drawPixel(8,3,COLOR565_CYAN);
-    
-    matrix_swapBuffers(TRUE);
-    
-    int i=0,j=5,k=2;
-    
-    while(TRUE) {
-        
-        int point_sec[2];
-        int point_min[2];
-        int point_hr[2];
-        
-        get_end_point(i, min_end_pnts, 15, point_sec);
-        get_end_point(j, min_end_pnts, 15, point_min);
-        get_end_point(k, hr_end_pnts, 3, point_hr);
-        
-        matrix_fillCircle(16,16,14,COLOR565_BLACK);
-        matrix_drawLine(16,16,16+point_sec[0],16+point_sec[1],COLOR565_CYAN);
-        matrix_drawLine(16,16,16+point_min[0],16+point_min[1],COLOR565_MAGENTA);
-        matrix_drawLine(16,16,16+point_hr[0],16+point_hr[1],COLOR565_YELLOW);
-
-        matrix_swapBuffers(TRUE);
-        
-        delay_ms(900);
-                
-        if (++i > 59) {
-            i = 0;
-            if (++j > 59) {
-                j = 0;
-                if (++k > 11) {
-                    k = 0;
-                }
-            }
-        }    
-    }
-}
-
-unsigned char sec=0,min=0,hr=0;
 struct pt pt_update_matrix;
 
-void update_analog_display() {
+void draw_atime(rtccTime dec_tm, rtccDate dec_dt) {
     matrix_fillScreen(COLOR565_BLACK);
     
     matrix_drawCircle(16,16,16,COLOR565_BLUE);
@@ -376,29 +219,19 @@ void update_analog_display() {
     matrix_drawPixel(3,8,COLOR565_CYAN);
     matrix_drawPixel(8,3,COLOR565_CYAN);
                     
-    int point_sec[2];
-    int point_min[2];
-    int point_hr[2];
+    char point_sec[2];
+    char point_min[2];
+    char point_hr[2];
 
-    get_end_point(sec, min_end_pnts, 15, point_sec);
-    get_end_point(min, min_end_pnts, 15, point_min);
-    get_end_point(hr, hr_end_pnts, 3, point_hr);
+    get_end_point(dec_tm.sec, min_end_pnts, 15, point_sec);
+    get_end_point(dec_tm.min, min_end_pnts, 15, point_min);
+    get_end_point((dec_tm.hour % 12),  hr_end_pnts,   3, point_hr);
 
     matrix_drawLine(16,16,16+point_sec[0],16+point_sec[1],COLOR565_CYAN);
     matrix_drawLine(16,16,16+point_min[0],16+point_min[1],COLOR565_MAGENTA);
     matrix_drawLine(16,16,16+point_hr[0],16+point_hr[1],COLOR565_YELLOW);
 
-    matrix_swapBuffers(FALSE);
-
-    if (++sec > 59) {
-        sec = 0;
-        if (++min > 59) {
-            min = 0;
-            if (++hr > 11) {
-                hr = 0;
-            }
-        }
-    }    
+    matrix_swapBuffers(FALSE);  
 }
 
 // The original format BCD codified date/time and the decimal versions
@@ -419,6 +252,8 @@ static PT_THREAD(protothread_update_matrix(struct pt *pt)) {
         dec_dt.l = bcdDate2DecDate(bcd_dt);
         
         draw_dtime(dec_tm, dec_dt);
+        PT_YIELD(pt);
+        //draw_atime(dec_tm, dec_dt);
     }
     
     PT_END(pt);
