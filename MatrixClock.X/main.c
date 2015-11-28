@@ -41,7 +41,7 @@ void draw_dtime(rtccTime dec_tm, rtccDate dec_dt) {
     const char* month_str = months_long[dec_dt.mon - 1];
     
     matrix_fillScreen(COLOR565_BLACK);
-    matrix_setCursor((8-strlen(month_str))<<1,2);
+    matrix_setCursor(((8-strlen(month_str))<<1)+1,2);
     matrix_setTextColor(matrix_color444(5,5,5));
     matrix_write3x5String(months_long[dec_dt.mon - 1]);
 
@@ -92,9 +92,9 @@ void draw_atime(rtccTime dec_tm, rtccDate dec_dt) {
     char point_min[2];
     char point_hr[2];
 
-    get_end_point(dec_tm.sec, min_end_pnts, 15, point_sec);
-    get_end_point(dec_tm.min, min_end_pnts, 15, point_min);
-    get_end_point((dec_tm.hour % 12),  hr_end_pnts,   3, point_hr);
+    get_end_pnt60(dec_tm.sec, point_sec);
+    get_end_pnt60(dec_tm.min, point_min);
+    get_end_pnt12((dec_tm.hour % 12), point_hr);
 
     matrix_drawLine(16,16,16+point_sec[0],16+point_sec[1],COLOR565_CYAN);
     matrix_drawLine(16,16,16+point_min[0],16+point_min[1],COLOR565_MAGENTA);
@@ -118,8 +118,8 @@ static PT_THREAD(protothread_update_matrix(struct pt *pt)) {
         dec_tm = bcdTime2DecTime(bcd_tm);
         dec_dt = bcdDate2DecDate(bcd_dt);
         
-        //draw_dtime(dec_tm, dec_dt);
-        draw_atime(dec_tm, dec_dt);
+        draw_dtime(dec_tm, dec_dt);
+        //draw_atime(dec_tm, dec_dt);
         PT_YIELD(pt);
     }
     
