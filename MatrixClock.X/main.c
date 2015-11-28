@@ -199,8 +199,6 @@ void get_end_point(int idx, const char* end_pnts, unsigned int num_pnts, char* p
     point[1] = y;
 }
 
-struct pt pt_update_matrix;
-
 void draw_atime(rtccTime dec_tm, rtccDate dec_dt) {
     matrix_fillScreen(COLOR565_BLACK);
     
@@ -234,6 +232,8 @@ void draw_atime(rtccTime dec_tm, rtccDate dec_dt) {
     matrix_swapBuffers(FALSE);  
 }
 
+struct pt pt_update_matrix;
+
 // The original format BCD codified date/time and the decimal versions
 rtccTime bcd_tm, dec_tm;
 rtccDate bcd_dt, dec_dt;
@@ -251,9 +251,9 @@ static PT_THREAD(protothread_update_matrix(struct pt *pt)) {
         dec_tm.l = bcdTime2DecTime(bcd_tm);
         dec_dt.l = bcdDate2DecDate(bcd_dt);
         
-        draw_dtime(dec_tm, dec_dt);
+        //draw_dtime(dec_tm, dec_dt);
+        draw_atime(dec_tm, dec_dt);
         PT_YIELD(pt);
-        //draw_atime(dec_tm, dec_dt);
     }
     
     PT_END(pt);
@@ -273,24 +273,6 @@ void main(void) {
     matrix_init(true);
     
     INTEnableSystemMultiVectoredInt();
-    
-//    rtccTime tm,starttm;
-//    
-//    while(1) {
-//        do{
-//            tm.l=RtccGetTime();
-//        } while(tm.sec==starttm.sec);
-//     
-//        // reset starting time
-//        starttm.sec = tm.sec;
-//      
-//        // toggle leds
-//        if (enabled) ledtoggle();
-//    }    
-            
-//    display_analog();
-//    display_date();
-//    display_time();
     
     PT_setup();
     
