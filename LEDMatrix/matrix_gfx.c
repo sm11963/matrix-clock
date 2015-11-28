@@ -467,6 +467,41 @@ inline void matrix_writeString(const char* str){
     }
 }
 
+void matrix_write3x5(unsigned char c) {
+    if (c == '\n') {
+        matrix_cursor_y += matrix_textsize*6;
+        matrix_cursor_x  = 0;
+    } 
+    else if (c == '\r') {
+        // skip em
+    }
+    else if (c == '\t'){
+        int new_x = matrix_cursor_x + MATRIX_TABSPACE;
+        if (new_x < _matrix_width){
+            matrix_cursor_x = new_x;
+        }
+    }
+    else {
+        matrix_draw3x5Char(matrix_cursor_x, matrix_cursor_y, c, matrix_textcolor, matrix_textbgcolor, matrix_textsize);
+        matrix_cursor_x += matrix_textsize*4;
+        if (matrix_wrap && (matrix_cursor_x > (_matrix_width - matrix_textsize*4))) {
+            matrix_cursor_y += matrix_textsize*6;
+            matrix_cursor_x = 0;
+        }
+    }
+}
+
+
+inline void matrix_write3x5String(const char* str){
+    /* Print text onto screen
+     * Call matrix_setCursor(), matrix_setTextColor(), matrix_setTextSize()
+     *  as necessary before printing
+     */
+    while (*str){
+        matrix_write3x5(*str++);
+    }
+}
+
 void matrix_draw3x5Char(short x, short y, unsigned char c, unsigned short color, unsigned short bg, unsigned char size) {
     static const int cw=4, ch=6;   // Character width and height
     static const int bxw=3, bxh=5; // Character bounding box

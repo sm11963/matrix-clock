@@ -304,6 +304,313 @@ void test_chars() {
     }
 }
 
+void test_time1() {
+    matrix_setCursor(2,3);
+    matrix_write3x5String("January");
+    matrix_setCursor(0,14);
+    matrix_write3x5String(" FRI 14 ");
+    matrix_setCursor(0,24);
+    matrix_write3x5String("24:02:23");
+    
+    matrix_swapBuffers(false);
+}
+
+void test_time2() {
+    matrix_setCursor(2,2);
+    matrix_write3x5String("January");
+    
+    matrix_setCursor(1,13);
+    matrix_writeString("24:02");
+    
+    matrix_setCursor(0,25);
+    matrix_write3x5String(" FRI 14 ");
+    
+    matrix_swapBuffers(false);
+}
+
+void test_time3() {
+    matrix_setCursor(2,2);
+    matrix_setTextColor(0x738e);
+    matrix_write3x5String("January");
+    
+    matrix_setCursor(1,13);
+    matrix_setTextColor(0xffff);
+    matrix_writeString("24:02");
+    
+    matrix_setCursor(0,25);
+    matrix_setTextColor(0x738e);
+    matrix_write3x5String(" FRI 14 ");
+    
+    matrix_swapBuffers(false);
+}
+
+static const char min_end_pnts[] = {
+    0, -12, //1
+    1, -12, //2
+    2, -12, //3
+    3, -11, //4
+    5, -11, //5
+    6, -10, //6
+    7, -10, //7
+    8, -9,  //8
+    9, -8,  //9
+    10, -7, //10
+    10, -6, //11
+    11, -5, //12
+    11, -3, //13
+    12, -2, //14
+    12, -1  //15
+};
+
+static const char hr_end_pnts[] = {
+    0, -6, //1
+    3, -5, //2
+    5, -3, //3
+};
+
+static const char short_end_pnts[] = {
+    0, -9, //1
+    1, -9, //2
+    2, -8, //3
+    3, -8, //4
+    3, -7, //5
+    4, -7, //6
+    4, -6, //7
+    5, -6, //8
+    6, -5, //9
+    6, -4, //10
+    7, -4, //11
+    7, -3, //12
+    8, -3, //13
+    8, -2, //14
+    9, -1  //15
+};
+
+void get_end_point(int idx, char* end_pnts, int* point) {
+    int i = idx % 15;
+    int x = end_pnts[i*2];
+    int y = end_pnts[(i*2)+1];
+    
+    if (idx >= 15 && idx < 30) {
+        swap(x,y);
+        x = -x;
+    }
+    else if (idx >= 30 && idx < 45) {
+        x = -x;
+        y = -y;
+    }
+    else if (idx >= 45) {
+        swap(x,y);
+        y = -y;
+    }
+    
+    point[0] = x;
+    point[1] = y;
+}
+
+void get_end_point_hr(int idx, char* end_pnts, int* point) {
+    int i = idx % 3;
+    int x = end_pnts[i*2];
+    int y = end_pnts[(i*2)+1];
+    
+    if (idx >= 3 && idx < 6) {
+        swap(x,y);
+        x = -x;
+    }
+    else if (idx >= 6 && idx < 9) {
+        x = -x;
+        y = -y;
+    }
+    else if (idx >= 9) {
+        swap(x,y);
+        y = -y;
+    }
+    
+    point[0] = x;
+    point[1] = y;
+}
+
+void test_analog() {
+    matrix_drawCircle(16,16,15,COLOR565_BLUE);
+    
+    int i=0;
+    
+    while(TRUE) {
+        matrix_fillCircle(16,16,14,COLOR565_BLACK);
+        matrix_drawLine(16,16,16+min_end_pnts[i*2],16+min_end_pnts[(i*2)+1],COLOR565_CYAN);
+
+        matrix_swapBuffers(TRUE);
+        
+        delay_ms(1000);
+        
+        i++;
+        
+        if (i > 14) {
+            i = 0;
+        }    
+    }
+}
+
+void test_analog2() {
+    matrix_drawCircle(16,16,15,COLOR565_BLUE);
+    matrix_swapBuffers(TRUE);
+    
+    int i=0,j=0;
+    
+    while(TRUE) {
+        
+        int point_sec[2];
+        int point_min[2];
+        
+        get_end_point(i, min_end_pnts, point_sec);
+        get_end_point(j, min_end_pnts, point_min);
+        
+        matrix_fillCircle(16,16,14,COLOR565_BLACK);
+        matrix_drawLine(16,16,16+point_sec[0],16+point_sec[1],COLOR565_CYAN);
+        matrix_drawLine(16,16,16+point_min[0],16+point_min[1],COLOR565_MAGENTA);
+
+
+        matrix_swapBuffers(TRUE);
+        
+        delay_ms(10);
+                
+        if (++i > 59) {
+            i = 0;
+            if (++j > 59) {
+                j = 0;
+            }
+        }    
+    }
+}
+
+void test_analog3() {
+    matrix_drawCircle(16,16,15,COLOR565_BLUE);
+    matrix_swapBuffers(TRUE);
+    
+    int i=0;
+    
+    while(TRUE) {
+        
+        int point_hr[2];
+        
+        get_end_point(i, hr_end_pnts, point_hr);
+        
+        matrix_fillCircle(16,16,14,COLOR565_BLACK);
+        matrix_drawLine(16,16,16+point_hr[0],16+point_hr[1],COLOR565_CYAN);
+
+
+        matrix_swapBuffers(TRUE);
+        
+        delay_ms(1000);
+                
+        if (++i > 14) {
+            i = 0;
+        }    
+    }
+}
+
+void test_analog4() {
+    matrix_drawCircle(16,16,15,COLOR565_BLUE);
+    matrix_swapBuffers(TRUE);
+    
+    int i=0,j=0,k=0;
+    
+    while(TRUE) {
+        
+        int point_sec[2];
+        int point_min[2];
+        int point_hr[2];
+        
+        get_end_point(i, min_end_pnts, point_sec);
+        get_end_point(j, min_end_pnts, point_min);
+        get_end_point(k, short_end_pnts, point_hr);
+
+        
+        matrix_fillCircle(16,16,14,COLOR565_BLACK);
+        matrix_drawLine(16,16,16+point_sec[0],16+point_sec[1],COLOR565_CYAN);
+        matrix_drawLine(16,16,16+point_min[0],16+point_min[1],COLOR565_MAGENTA);
+        matrix_drawLine(16,16,16+point_hr[0],16+point_hr[1],COLOR565_YELLOW);
+
+
+        matrix_swapBuffers(TRUE);
+        
+        //delay_ms(1);
+                
+        if (++i > 59) {
+            i = 0;
+            if (++j > 59) {
+                j = 0;
+                if (++k > 59) {
+                    k = 0;
+                }
+            }
+        }    
+    }
+}
+
+void test_analog5() {
+    matrix_drawCircle(16,16,15,COLOR565_BLUE);
+    matrix_swapBuffers(TRUE);
+    
+    int i=0;
+    
+    while(TRUE) {
+        
+        int point_hr[2];
+        
+        get_end_point(i, hr_end_pnts, point_hr);
+        
+        matrix_fillCircle(16,16,14,COLOR565_BLACK);
+        matrix_drawLine(16,16,16+point_hr[0],16+point_hr[1],COLOR565_CYAN);
+
+
+        matrix_swapBuffers(TRUE);
+        
+        delay_ms(1000);
+                
+        if (++i > 2) {
+            i = 0;
+        }    
+    }
+}
+
+void test_analog6() {
+    matrix_drawCircle(16,16,15,COLOR565_BLUE);
+    matrix_swapBuffers(TRUE);
+    
+    int i=0,j=0,k=0;
+    
+    while(TRUE) {
+        
+        int point_sec[2];
+        int point_min[2];
+        int point_hr[2];
+        
+        get_end_point(i, min_end_pnts, point_sec);
+        get_end_point(j, min_end_pnts, point_min);
+        get_end_point_hr(k, hr_end_pnts, point_hr);
+        
+        matrix_fillCircle(16,16,14,COLOR565_BLACK);
+        matrix_drawLine(16,16,16+point_sec[0],16+point_sec[1],COLOR565_CYAN);
+        matrix_drawLine(16,16,16+point_min[0],16+point_min[1],COLOR565_MAGENTA);
+        matrix_drawLine(16,16,16+point_hr[0],16+point_hr[1],COLOR565_YELLOW);
+
+        matrix_swapBuffers(TRUE);
+        
+        delay_ms(900);
+                
+        if (++i > 59) {
+            i = 0;
+            if (++j > 59) {
+                j = 0;
+                if (++k > 11) {
+                    k = 0;
+                }
+            }
+        }    
+    }
+}
+
 // === Main  ======================================================
 void main(void) {
     // Configure the device for maximum performance but do not change the PBDIV
@@ -354,6 +661,8 @@ void main(void) {
     //animation_loop();
     //display_image();
     //display_time();
-    test_chars();
+    //test_time3();
+    test_analog6();
+    //test_chars();
 }
 // === end  ======================================================

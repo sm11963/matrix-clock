@@ -46,6 +46,10 @@ void matrix_draw3x5Char(short x, short y, unsigned char c, unsigned short color,
 void matrix_setCursor(short x, short y);
 void matrix_write(unsigned char c);
 void matrix_writeString(const char* str);    // This is the function to use to write a string
+void matrix_write3x5(unsigned char c);
+void matrix_write3x5String(const char* str);
+
+
 
 void matrix_setTextColor(unsigned short c);
 void matrix_setTextColor2(unsigned short c, unsigned short bg);
