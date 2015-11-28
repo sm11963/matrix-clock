@@ -16,6 +16,77 @@
 #include "blocking_delay.h"
 #include "pt_cornell_1_2.h"
 
+static const char min_end_pnts[] = {
+    0, -12, //1
+    1, -12, //2
+    2, -12, //3
+    3, -11, //4
+    5, -11, //5
+    6, -10, //6
+    7, -10, //7
+    8, -9,  //8
+    9, -8,  //9
+    10, -7, //10
+    10, -6, //11
+    11, -5, //12
+    11, -3, //13
+    12, -2, //14
+    12, -1  //15
+};
+
+static const char* days_short[] = {
+    "MON",
+    "TUE",
+    "WED",
+    "THU",
+    "FRI",
+    "SAT",
+    "SUN"
+};
+
+static const char* days_long[] = {
+    "Monday",
+    "Tuesday",
+    "Wednsday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday"
+};
+
+static const char* months_long[] = {
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "May",
+    "November",
+    "December"
+};
+
+static const char* months_short[] = {
+    "JAN",
+    "FEB",
+    "MAR",
+    "APR",
+    "MAY",
+    "JUN",
+    "JUL",
+    "AUG",
+    "SEP",
+    "NOV",
+    "DEC"
+};
+
+static const char hr_end_pnts[] = {
+    0, -6, //1
+    3, -5, //2
+    5, -3, //3
+};
 
 void rtcc_init() {
     rtccTime tm;
@@ -35,7 +106,7 @@ void rtcc_init() {
     dt.mon=0x09;
     dt.year=0x09;
         
-    RtccOpen(tm.l, dt.l, -500);
+    RtccOpen(tm.l, dt.l, 0);
 }
 
 volatile BOOL enabled = 1;
@@ -110,6 +181,61 @@ void draw_time(rtccTime tm) {
     matrix_swapBuffers(true);
 }
 
+unsigned char bcd2char(unsigned char x) {
+    return (x & 0xf) + (((x & 0xf0) >> 4) * 10);
+}
+
+unsigned long bcdTime2DecTime(rtccTime tm) {
+    tm.sec = bcd2char(tm.sec);
+    tm.min = bcd2char(tm.min);
+    tm.hour = bcd2char(tm.hour);
+    
+    return tm.l;
+}
+
+unsigned long bcdDate2DecDate(rtccDate dt) {
+    dt.mday = bcd2char(dt.mday);
+    dt.mon = bcd2char(dt.mon);
+    dt.year = bcd2char(dt.year);
+    
+    return dt.l;
+}
+
+void draw_dtime(rtccTime dec_tm, rtccDate dec_dt) {
+    char time_buf[10];
+    
+    char* month_str = months_long[dec_dt.mon - 1];
+    
+    matrix_fillScreen(COLOR565_BLACK);
+    matrix_setCursor((8-strlen(month_str))<<1,2);
+    matrix_setTextColor(matrix_color444(4,4,4));
+    matrix_write3x5String(months_long[dec_dt.mon - 1]);
+
+    matrix_setCursor(1,11);
+    matrix_setTextColor(0xffff);
+    sprintf(time_buf, "%2d:%02d", dec_tm.hour, dec_tm.min);
+    matrix_writeString(time_buf);
+
+    if (dec_tm.sec < 30) {
+        matrix_drawLine(1,19,dec_tm.sec+1,19,matrix_color444(4,0,0));
+    }
+    else {
+        matrix_drawLine(1,19,30,19,matrix_color444(4,0,0));
+        matrix_drawLine(1,20,dec_tm.sec-29,20, matrix_color444(4,0,0));
+    }
+
+    if (++dec_tm.sec > 59) {
+        dec_tm.sec = 0;
+    }
+
+    matrix_setCursor(0,25);
+    matrix_setTextColor(matrix_color444(4,4,4));
+    sprintf(time_buf, " %s %-2d ", days_short[dec_dt.wday], dec_dt.mday);
+    matrix_write3x5String(" FRI 14 ");
+
+    matrix_swapBuffers(FALSE);
+}
+
 void display_time() {
     static rtccTime curr_tm;
     while (true) {
@@ -153,78 +279,6 @@ void display_date() {
         delay_ms(500);
     }
 }
-
-static const char min_end_pnts[] = {
-    0, -12, //1
-    1, -12, //2
-    2, -12, //3
-    3, -11, //4
-    5, -11, //5
-    6, -10, //6
-    7, -10, //7
-    8, -9,  //8
-    9, -8,  //9
-    10, -7, //10
-    10, -6, //11
-    11, -5, //12
-    11, -3, //13
-    12, -2, //14
-    12, -1  //15
-};
-
-static const char* days_short[] = {
-    "MON",
-    "TUE",
-    "WED",
-    "THU",
-    "FRI",
-    "SAT",
-    "SUN"
-};
-
-static const char* days_long[] = {
-    "Monday",
-    "Tuesday",
-    "Wednsday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-    "Sunday"
-};
-
-static const char* months_long[] = {
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "Septmber",
-    "November",
-    "December"
-};
-
-static const char* months_short[] = {
-    "JAN",
-    "FEB",
-    "MAR",
-    "APR",
-    "MAY",
-    "JUN",
-    "JUL",
-    "AUG",
-    "SEP",
-    "NOV",
-    "DEC"
-};
-
-static const char hr_end_pnts[] = {
-    0, -6, //1
-    3, -5, //2
-    5, -3, //3
-};
 
 void get_end_point(int idx, const char* end_pnts, unsigned int num_pnts, int* point) {
     int i = idx % num_pnts;
@@ -336,8 +390,6 @@ void update_analog_display() {
 
     matrix_swapBuffers(FALSE);
 
-    delay_ms(900);
-
     if (++sec > 59) {
         sec = 0;
         if (++min > 59) {
@@ -349,11 +401,24 @@ void update_analog_display() {
     }    
 }
 
+// The original format BCD codified date/time and the decimal versions
+rtccTime bcd_tm, dec_tm;
+rtccDate bcd_dt, dec_dt;
+
 static PT_THREAD(protothread_update_matrix(struct pt *pt)) {
     PT_BEGIN(pt);
     
     while(TRUE) {
-        update_analog_display();
+        //update_analog_display();
+        //PT_YIELD_TIME_msec(900);
+        //display_time();
+        
+        RtccGetTimeDate(&bcd_tm, &bcd_dt);
+        // Convert BCD codified date/time to decimal
+        dec_tm.l = bcdTime2DecTime(bcd_tm);
+        dec_dt.l = bcdDate2DecDate(bcd_dt);
+        
+        draw_dtime(dec_tm, dec_dt);
     }
     
     PT_END(pt);
@@ -366,25 +431,12 @@ void main(void) {
 	// wait state and enable prefetch cache but will not change the PBDIV.
 	// The PBDIV value is already set via the pragma FPBDIV option above..
 	SYSTEMConfig(SYSCLK, SYS_CFG_WAIT_STATES | SYS_CFG_PCACHE);
-    
-    //matrix_init(true);
-    
-    int status;
-    test();
-    
-    
-//    status = rtcc_init();
-//    if (status != 0) {
-//        // error ocurred enable LED and start blinking
-//        mPORTASetPinsDigitalOut(BIT_0);
-//        while(1) {
-//            mPORTAToggleBits(BIT_0);
-//            delay_ms(300);
-//        }
-//    }
-    
+   
     INTDisableInterrupts();
+    
+    rtcc_init();
     matrix_init(true);
+    
     INTEnableSystemMultiVectoredInt();
     
 //    rtccTime tm,starttm;
