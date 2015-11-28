@@ -344,6 +344,41 @@ void test_time3() {
     matrix_swapBuffers(false);
 }
 
+void test_time4() {
+    int secs = 0;
+    
+    while (TRUE) {
+        matrix_fillScreen(COLOR565_BLACK);
+        matrix_setCursor(2,2);
+        matrix_setTextColor(0x738e);
+        matrix_write3x5String("January");
+
+        matrix_setCursor(1,12);
+        matrix_setTextColor(0xffff);
+        matrix_writeString("24:02");
+
+        if (secs < 30) {
+            matrix_drawLine(1,20,secs+1,20,matrix_color444(4,0,0));
+        }
+        else {
+            matrix_drawLine(1,20,30,20,matrix_color444(4,0,0));
+            matrix_drawLine(1,21,secs-29,21, matrix_color444(4,0,0));
+        }
+        
+        if (++secs > 59) {
+            secs = 0;
+        }
+        
+        matrix_setCursor(0,25);
+        matrix_setTextColor(0x738e);
+        matrix_write3x5String(" FRI 14 ");
+
+        matrix_swapBuffers(false);
+        
+        delay_ms(500);
+    }
+}
+
 static const char min_end_pnts[] = {
     0, -12, //1
     1, -12, //2
@@ -661,8 +696,8 @@ void main(void) {
     //animation_loop();
     //display_image();
     //display_time();
-    //test_time3();
-    test_analog6();
+    test_time4();
+    //test_analog6();
     //test_chars();
 }
 // === end  ======================================================

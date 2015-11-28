@@ -12,10 +12,7 @@
       <itemPath>matrix_tests.h</itemPath>
       <itemPath>matrix_plasma.h</itemPath>
       <itemPath>blocking_delay.h</itemPath>
-      <itemPath>dragon.h</itemPath>
-      <itemPath>icon.h</itemPath>
-      <itemPath>font_5x7.h</itemPath>
-      <itemPath>font_3x5.h</itemPath>
+      <itemPath>glcdfont.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
