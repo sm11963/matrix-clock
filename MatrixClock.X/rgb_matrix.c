@@ -33,7 +33,9 @@ void matrix_init(BOOL dualbuffers) {
     _matrix_height = MATRIX_HEIGHT;
     _matrix_width = MATRIX_WIDTH;
     
-    mPORTASetPinsDigitalOut(BIT_0|BIT_1);
+    mPORTASetPinsDigitalOut(MATRIX_CLK_PORTA_BIT
+                            |MATRIX_OE_PORTA_BIT
+                            |MATRIX_LAT_PORTA_BIT);
     
     mPORTBClearBits(MATRIX_A_PORTB_BIT|MATRIX_B_PORTB_BIT
                    |MATRIX_C_PORTB_BIT|MATRIX_D_PORTB_BIT);
@@ -41,9 +43,12 @@ void matrix_init(BOOL dualbuffers) {
                            |MATRIX_C_PORTB_BIT|MATRIX_D_PORTB_BIT);
     
     // 0,1,2,3 & 5 & 8,9 & 13 14 15 (1110|0011|0010|1111)
+    // (1000|0011|1000|1110)
     mPORTBClearBits(0x387);
-    mPORTBSetPinsDigitalOut(0x387 | BIT_15);
+    mPORTBSetPinsDigitalOut(0x387);
     
+    mPORTBClearBits(BIT_12);
+                
     // Open timer 2 with prescalar 1 and max value
     OpenTimer2(T2_ON | T2_SOURCE_INT | T2_PS_1_1, 100);
     // Setup interrupts to handle overflow
@@ -83,7 +88,7 @@ void __ISR(_TIMER_2_VECTOR, IPL5AUTO) matrix_updateDisplay(void) {
     UINT16 *end_ptr;
     UINT16 i, duration;
     
-    mPORTASetBits(BIT_1);  
+    mPORTASetBits(MATRIX_OE_PORTA_BIT|MATRIX_LAT_PORTA_BIT);  
     
     duration = ((LOOPTIME + (CALLOVERHEAD * 2)) << plane) - CALLOVERHEAD;
     
@@ -101,8 +106,7 @@ void __ISR(_TIMER_2_VECTOR, IPL5AUTO) matrix_updateDisplay(void) {
         }
     }
     else if (plane == 1) {
-        mPORTBClearBits(MATRIX_A_PORTB_BIT|MATRIX_B_PORTB_BIT
-                       |MATRIX_C_PORTB_BIT|MATRIX_D_PORTB_BIT);
+        mPORTBClearBits(MATRIX_A_PORTB_BIT|MATRIX_B_PORTB_BIT|MATRIX_C_PORTB_BIT|MATRIX_D_PORTB_BIT);
         if (row & BIT_0) mPORTBSetBits(MATRIX_A_PORTB_BIT);
         if (row & BIT_1) mPORTBSetBits(MATRIX_B_PORTB_BIT);
         if (row & BIT_2) mPORTBSetBits(MATRIX_C_PORTB_BIT);
@@ -114,15 +118,15 @@ void __ISR(_TIMER_2_VECTOR, IPL5AUTO) matrix_updateDisplay(void) {
     
     WritePeriod2(duration);
     WriteTimer2(0);
-    mPORTAClearBits(BIT_1);
+    mPORTAClearBits(MATRIX_OE_PORTA_BIT|MATRIX_LAT_PORTA_BIT);
     
     if (plane > 0) {
         for (; ptr< end_ptr; ptr++) {
             mPORTBClearBits(0x387);
             mPORTBSetBits( *ptr & 0x387 );
             _nop(); _nop();
-            mPORTBSetBits(BIT_15);
-            mPORTBClearBits(BIT_15);
+            mPORTASetBits(MATRIX_CLK_PORTA_BIT);
+            mPORTAClearBits(MATRIX_CLK_PORTA_BIT);
         }
         
         buffptr = ptr;
@@ -132,8 +136,8 @@ void __ISR(_TIMER_2_VECTOR, IPL5AUTO) matrix_updateDisplay(void) {
             mPORTBClearBits(0x387);
             mPORTBSetBits( ((ptr[i] >> 6) & 0x380) | ((ptr[i] >> 4) & 0x7) );
             _nop(); _nop();
-            mPORTBSetBits(BIT_15);
-            mPORTBClearBits(BIT_15);
+            mPORTASetBits(MATRIX_CLK_PORTA_BIT);
+            mPORTAClearBits(MATRIX_CLK_PORTA_BIT);
         }
     }
      

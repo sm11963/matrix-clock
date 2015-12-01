@@ -28,11 +28,16 @@
 #pragma config FWDTEN = OFF
 #pragma config FSOSCEN = OFF
 #pragma config JTAGEN = OFF
+#pragma config DEBUG = OFF
 
 #endif /* MAIN_APPLICATION */
 
 // Define clock speed for use by reset of the applications
 #define SYSCLK 40000000
 #define PBCLK SYSCLK    // FPBDIV is DIV_1
+
+#define use_uart_serial
+#define BAUDRATE 9600
+#define pb_clock PBCLK
 
 #endif	/* CONFIG_H */
