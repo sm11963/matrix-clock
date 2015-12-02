@@ -151,8 +151,8 @@ static PT_THREAD(protothread_update_matrix(struct pt *pt)) {
         //dec_tm = bcdTime2DecTime(bcd_tm);
         //dec_dt = bcdDate2DecDate(bcd_dt);
         
-        //draw_dtime(dec_tm, dec_dt);
-        draw_atime(dec_tm, dec_dt);
+        draw_dtime(dec_tm, dec_dt);
+        //draw_atime(dec_tm, dec_dt);
         PT_YIELD(pt);
     }
     
@@ -163,18 +163,36 @@ static PT_THREAD(protothread_update_matrix(struct pt *pt)) {
 static PT_THREAD(protothread_serial(struct pt *pt)) {
     PT_BEGIN(pt);
     
-    static int in_hr;
-    static int in_sec;
-    static int in_min;
-            
+    static int in_hr, in_min, in_sec;
+    static int in_mday, in_wday, in_mon, in_yr;
+    
     while (1) {
         PT_SPAWN( pt, &pt_get, PT_GetSerialBuffer(&pt_get) );
-        if (sscanf(PT_term_buffer, "%d:%d:%d", &in_hr, &in_min, &in_sec) == 3) {
-            pt_printl("Okay");
-            pt_printfl("Time is %d:%d:%d", in_hr, in_min, in_sec);
-            dec_tm.hour = in_hr;
+        if (sscanf(PT_term_buffer, "min %d", &in_min)) {
             dec_tm.min = in_min;
+            pt_printl("okay min");
+        }
+        else if (sscanf(PT_term_buffer, "sec %d", &in_sec)) {
             dec_tm.sec = in_sec;
+            pt_printl("okay sec");
+        }
+        else if (sscanf(PT_term_buffer, "hr %d", &in_hr)) {
+            dec_tm.hour = in_hr;
+            pt_printl("okay hour");
+        }
+//        if (sscanf(PT_term_buffer, "t %d:%d:%d", &in_hr, &in_min, &in_sec) == 3) {
+//            pt_printl("Okay");
+//            dec_tm.hour = in_hr;
+//            dec_tm.min = in_min;
+//            dec_tm.sec = in_sec;
+//        }
+        else if (sscanf(PT_term_buffer, "d %d/%d/%d-%d", &in_mon, &in_mday, &in_yr, &in_wday) == 4) {
+            pt_printl("Yup");
+            pt_printfl("Date is %d/%d/%d with wday: %d", in_mon, in_mday, in_yr, in_wday);
+            dec_dt.mday = in_mday;
+            dec_dt.wday = in_wday;
+            dec_dt.mon = in_mon;
+            dec_dt.year = in_yr;
         }
         else {
             pt_printl("Invalid cmd.");
