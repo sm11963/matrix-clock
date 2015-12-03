@@ -42,13 +42,11 @@ void matrix_init(BOOL dualbuffers) {
     mPORTBSetPinsDigitalOut(MATRIX_A_PORTB_BIT|MATRIX_B_PORTB_BIT
                            |MATRIX_C_PORTB_BIT|MATRIX_D_PORTB_BIT);
     
-    // 0,1,2,3 & 5 & 8,9 & 13 14 15 (1110|0011|0010|1111)
-    // (1000|0011|1000|1110)
+    //   9,8,7  &  2,1,0
+    // (0011|1000|0111)
     mPORTBClearBits(0x387);
     mPORTBSetPinsDigitalOut(0x387);
-    
-    mPORTBClearBits(BIT_12);
-                
+                    
     // Open timer 2 with prescalar 1 and max value
     OpenTimer2(T2_ON | T2_SOURCE_INT | T2_PS_1_1, 100);
     // Setup interrupts to handle overflow
