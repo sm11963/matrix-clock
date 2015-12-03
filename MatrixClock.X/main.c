@@ -74,30 +74,30 @@ void draw_dtime(rtccTime dec_tm, rtccDate dec_dt) {
     const char* month_str = months_long[dec_dt.mon - 1];
     
     matrix_fillScreen(COLOR565_BLACK);
-    matrix_setCursor(((8-strlen(month_str))<<1)+1,2);
+    matrix_setCursor(((8-strlen(month_str))<<1),2);
     matrix_setTextColor(matrix_color444(5,5,5));
     matrix_write3x5String(months_long[dec_dt.mon - 1]);
 
     matrix_setTextColor(0xffff);
     sprintf(time_buf, "%d:%02d", twentyFour2TwelveHour(dec_tm.hour), dec_tm.min);
-    matrix_setCursor(((5-strlen(time_buf))*3)+1,11);
+    matrix_setCursor(((5-strlen(time_buf))*3)+1,12);
     matrix_writeString(time_buf);
 
     if (dec_tm.sec < 30) {
-        matrix_drawLine(1,19,dec_tm.sec+1,19,matrix_color444(1,0,0));
+        matrix_drawLine(1,20,dec_tm.sec+1,20,matrix_color444(1,0,0));
     }
     else {
-        matrix_drawLine(1,19,30,19,matrix_color444(1,0,0));
-        matrix_drawLine(1,20,dec_tm.sec-29,20, matrix_color444(1,0,0));
+        matrix_drawLine(1,20,30,20,matrix_color444(1,0,0));
+        matrix_drawLine(1,21,dec_tm.sec-29,21, matrix_color444(1,0,0));
     }
 
     if (++dec_tm.sec > 59) {
         dec_tm.sec = 0;
     }
 
-    matrix_setCursor(0,25);
+    matrix_setCursor(((dec_dt.mday > 9) ? 4:6),25);
     matrix_setTextColor(matrix_color444(5,5,5));
-    sprintf(time_buf, " %s %-2d ", days_short[dec_dt.wday], dec_dt.mday);
+    sprintf(time_buf, "%s %d", days_short[dec_dt.wday], dec_dt.mday);
     matrix_write3x5String(time_buf);
 
     matrix_swapBuffers(FALSE);
@@ -106,8 +106,8 @@ void draw_dtime(rtccTime dec_tm, rtccDate dec_dt) {
 void draw_atime(rtccTime dec_tm, rtccDate dec_dt) {
     matrix_fillScreen(COLOR565_BLACK);
     
-    matrix_drawCircle(16,16,16,COLOR565_BLUE);
-    matrix_drawCircle(16,16,15,COLOR565_BLUE);
+    matrix_drawCircle(16,16,16,matrix_color444(0,0,5));
+    matrix_drawCircle(16,16,15,matrix_color444(0,0,5));
     matrix_drawPixel(16,1,COLOR565_CYAN);
     matrix_drawPixel(24,3,COLOR565_CYAN);
     matrix_drawPixel(29,8,COLOR565_CYAN);
@@ -124,7 +124,7 @@ void draw_atime(rtccTime dec_tm, rtccDate dec_dt) {
     char point_sec[2];
     char point_min[2];
     char point_hr[2];
-
+    
     get_end_pnt60(dec_tm.sec, point_sec);
     get_end_pnt60(dec_tm.min, point_min);
     get_end_pnt12((dec_tm.hour % 12), point_hr);
@@ -151,8 +151,8 @@ static PT_THREAD(protothread_update_matrix(struct pt *pt)) {
         //dec_tm = bcdTime2DecTime(bcd_tm);
         //dec_dt = bcdDate2DecDate(bcd_dt);
         
-        draw_dtime(dec_tm, dec_dt);
-        //draw_atime(dec_tm, dec_dt);
+        //draw_dtime(dec_tm, dec_dt);
+        draw_atime(dec_tm, dec_dt);
         PT_YIELD(pt);
     }
     
@@ -168,34 +168,19 @@ static PT_THREAD(protothread_serial(struct pt *pt)) {
     
     while (1) {
         PT_SPAWN( pt, &pt_get, PT_GetSerialBuffer(&pt_get) );
-        if (sscanf(PT_term_buffer, "min %d", &in_min)) {
-            dec_tm.min = in_min;
-            pt_printl("okay min");
-        }
-        else if (sscanf(PT_term_buffer, "sec %d", &in_sec)) {
-            dec_tm.sec = in_sec;
-            pt_printl("okay sec");
-        }
-        else if (sscanf(PT_term_buffer, "hr %d", &in_hr)) {
+        if (sscanf(PT_term_buffer, "t %d:%d:%d", &in_hr, &in_min, &in_sec) == 3) {
             dec_tm.hour = in_hr;
-            pt_printl("okay hour");
+            dec_tm.min = in_min;
+            dec_tm.sec = in_sec;
         }
-//        if (sscanf(PT_term_buffer, "t %d:%d:%d", &in_hr, &in_min, &in_sec) == 3) {
-//            pt_printl("Okay");
-//            dec_tm.hour = in_hr;
-//            dec_tm.min = in_min;
-//            dec_tm.sec = in_sec;
-//        }
         else if (sscanf(PT_term_buffer, "d %d/%d/%d-%d", &in_mon, &in_mday, &in_yr, &in_wday) == 4) {
-            pt_printl("Yup");
-            pt_printfl("Date is %d/%d/%d with wday: %d", in_mon, in_mday, in_yr, in_wday);
             dec_dt.mday = in_mday;
             dec_dt.wday = in_wday;
             dec_dt.mon = in_mon;
             dec_dt.year = in_yr;
         }
         else {
-            pt_printl("Invalid cmd.");
+            pt_printl("Invalid");
         }
     } // END WHILE(1)
     PT_END(pt);

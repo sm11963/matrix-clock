@@ -636,8 +636,8 @@ int PT_GetSerialBuffer(struct pt *pt)
         PT_YIELD_UNTIL(pt, UARTReceivedDataIsAvailable(UART2));
        // while(!UARTReceivedDataIsAvailable(UART2)){};
         character = UARTGetDataByte(UART2);
-        PT_YIELD_UNTIL(pt, UARTTransmitterIsReady(UART2));
-        UARTSendDataByte(UART2, character);
+        //PT_YIELD_UNTIL(pt, UARTTransmitterIsReady(UART2));
+        //UARTSendDataByte(UART2, character);
 
         // unomment to check backspace character!!!
         //printf("--%x--",character );
@@ -646,22 +646,13 @@ int PT_GetSerialBuffer(struct pt *pt)
         if(character == '\r'){
             PT_term_buffer[num_char] = 0; // zero terminate the string
             //crlf; // send a new line
-            PT_YIELD_UNTIL(pt, UARTTransmitterIsReady(UART2));
-            UARTSendDataByte(UART2, '\n');
+            //PT_YIELD_UNTIL(pt, UARTTransmitterIsReady(UART2));
+            //UARTSendDataByte(UART2, '\n');
             break;
         }
-        // backspace
-        else if (character == backspace){
-            PT_YIELD_UNTIL(pt, UARTTransmitterIsReady(UART2));
-            UARTSendDataByte(UART2, ' ');
-            PT_YIELD_UNTIL(pt, UARTTransmitterIsReady(UART2));
-            UARTSendDataByte(UART2, backspace);
-            num_char--;
-            // check for buffer underflow
-            if (num_char<0) {num_char = 0 ;}
+        else {
+            PT_term_buffer[num_char++] = character;
         }
-        else  {PT_term_buffer[num_char++] = character ;}
-         //if (character == backspace)
 
     } //end while(num_char < max_size)
 

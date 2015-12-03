@@ -5,23 +5,23 @@
  ******************************************************************************/
 
 const char* days_short[] = {
-    "SUN",
     "MON",
     "TUE",
     "WED",
     "THU",
     "FRI",
-    "SAT"
+    "SAT",
+    "SUN"
 };
 
 const char* days_long[] = {
-    "Sunday",
     "Monday",
     "Tuesday",
     "Wednsday",
     "Thursday",
     "Friday",
-    "Saturday"
+    "Saturday",
+    "Sunday"
 };
 
 const char* months_long[] = {
