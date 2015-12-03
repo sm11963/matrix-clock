@@ -15,13 +15,13 @@ def write_time(ser, dt):
     print(dt)
     w = 't {}:{}:{}'.format(dt.hour, dt.minute, dt.second)
     print("sending: " + w)
-    write_line(ser, w)
+    write_line(ser, w, 3)
 
 def write_date(ser, dt):
     print(dt.date())
     w = 'd {}/{}/{}-{}'.format(dt.month, dt.day, (dt.year-2000), dt.weekday())
     print("sending: " + w)
-    write_line(ser, w, 5)
+    write_line(ser, w, 6)
 
 if __name__ == "__main__":
 
