@@ -26,9 +26,16 @@
 static struct pt pt_ir;
 
 static PT_THREAD(protothread_ir(struct pt *pt)) {
+    static ir_cmd_t ir_cmd;
+    
     PT_BEGIN(pt);
     while(TRUE){
-
+        PT_YIELD_UNTIL( pt, ir_ready);
+        ir_receive(&ir_cmd);
+        matrix_fillScreen(COLOR565_BLACK);
+        matrix_setCursor(0,0);
+        matrix_write3x5String(ir_cmd.str);
+        matrix_swapBuffers(false);
     }
     PT_END(pt);
 }

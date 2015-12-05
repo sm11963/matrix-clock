@@ -2,6 +2,8 @@
 
 #include "config.h"
 #include "pt_cornell_1_2.h"
+#include "rgb_matrix.h"
+#include "matrix_gfx.h"
 
 // The arrays we are storing the pulses in
 unsigned short last_pulses[100][2]; // stores the previous pulse
@@ -12,7 +14,6 @@ volatile unsigned short currentpulse = 0; // index for pulses we are storing
 int in_pulse = 0;
 int decoded_pulses[50];
 int opcode; // Holds the opcode's int representation after decode
-volatile BOOL need_decode = 0; // Let's us know when its time to decode
 char last_opcode_str[7];
 
 // For reseting the pulses on timer overflow (20ms)
@@ -24,6 +25,62 @@ int cursor;
 
 int counter;
 
+#define APPLE_REMOTE_ADDR 0b11101110
+
+const char * const apple_remote_mapping[] = {
+    "UNK",
+    "BACK",
+    "FORW",
+    "-",
+    "+",
+    "ENTER",
+    "MENU",
+};
+
+const char* opcode2str_apple(int opcode) {
+    switch (opcode) {
+        case 1:
+            return apple_remote_mapping[1];
+            break;
+        case 2:
+            return apple_remote_mapping[5];
+            break;
+        case 4:
+            return apple_remote_mapping[6];
+            break;
+        case 11:
+            return apple_remote_mapping[3];
+            break;
+        case 13:
+            return apple_remote_mapping[4];
+            break;
+        case 14:
+            return apple_remote_mapping[2];
+            break;
+        default:
+            return apple_remote_mapping[0];
+    }
+}
+
+
+int getAddr() {
+    static int addr, i;
+    addr = 0;
+    for(i = 2; i <= 9; i++){  // First check to see if the address is 0
+        addr |= (decoded_pulses[i] << (i-2));
+    }
+    return addr;
+}
+
+int getOpcode() {
+    static int opcode, i;
+    opcode = 0;
+    for(i = 18; i < 22; i++){
+        opcode = opcode << 1;
+        opcode = decoded_pulses[i] + opcode;
+    }
+    return opcode;
+}
 
 void ir_init() {
     bufferInit(ir_received_ids, 5, char);
@@ -89,6 +146,28 @@ const char *getPulseCode(void){
     return ir_opcode_table[opcode];
 }
 
+ void matrix_drawIRPulses(void) {
+    static unsigned char i;
+    static const char num_in_row = 20;
+    
+    for(i = 0; i < 40; i++) {
+        matrix_drawPixel(i % num_in_row, 10 + (i/num_in_row), COLOR565_BLACK);
+        
+        if (decoded_pulses[i] == 99) {
+            matrix_drawPixel(i % num_in_row, 10 + (i / num_in_row), COLOR565_WHITE);
+        } else if (decoded_pulses[i] == 52) {
+            matrix_drawPixel(i % num_in_row, 10 + (i / num_in_row), COLOR565_BLUE);
+        } else if (decoded_pulses[i] == 0) {
+            matrix_drawPixel(i % num_in_row, 10 + (i / num_in_row), COLOR565_RED);
+        } else if (decoded_pulses[i] == 1) {
+            matrix_drawPixel(i % num_in_row, 10 + (i / num_in_row), COLOR565_GREEN);
+        } else if (decoded_pulses[i] == 2) {
+            matrix_drawPixel(i % num_in_row, 10 + (i / num_in_row), COLOR565_YELLOW);
+        }
+    }
+}
+
+
 void ir_decodepulses(void){
     static char i;
     for(i = 0; i < 40; i++){
@@ -106,19 +185,6 @@ void ir_decodepulses(void){
             decoded_pulses[i] = ir_isLogicPulse(last_pulses[i][0]);
         }
     }
-}
-
-static struct pt pt_ir;
-
-static PT_THREAD(protothread_ir(struct pt *pt)) {
-    PT_BEGIN(pt);
-    while(TRUE){
-        PT_YIELD_UNTIL(pt, need_decode);
-        need_decode = FALSE;
-
-        ir_decodepulses();
-    }
-    PT_END(pt);
 }
 
 unsigned char getPulseId() {
@@ -141,6 +207,21 @@ unsigned char getPulseId() {
     }
     
     return opcode;
+}
+
+char ir_receive(ir_cmd_t* cmd_ptr) {
+    if (!cmd_ptr) return -1;
+    if (!ir_ready) return 1;
+    
+    ir_decodepulses();
+    ir_ready = FALSE;
+    
+    cmd_ptr->addr = getAddr();
+    cmd_ptr->opcode = getOpcode();
+    cmd_ptr->is_repeat = (decoded_pulses[1] == 99);
+    cmd_ptr->str = opcode2str_apple(cmd_ptr->opcode);
+    
+    return 0;
 }
 
 //=== Capture 1 ISR ================================
@@ -167,11 +248,11 @@ void __ISR(_INPUT_CAPTURE_1_VECTOR, IPL3AUTO) C1Handler(void){
 // Will clear the pulses variable to reset for next capture
 void __ISR(_TIMER_3_VECTOR, IPL2AUTO) Timer3Handler(void){
     if (end_pulse){
-        memcpy(last_pulses, pulses, sizeof(pulses));
-        memset(pulses, 0, sizeof(pulses));
+        memcpy(*last_pulses, *pulses, sizeof(pulses));
+        memset(*pulses, 0, sizeof(pulses));
         end_pulse = FALSE;
         currentpulse = 0;
-        need_decode = TRUE;
+        ir_ready = TRUE;
     }
     mT3ClearIntFlag();
 }
