@@ -31,10 +31,14 @@ inline unsigned short *pulse_array_to_read();
 inline void finish_reading_pulse();
 
 apple_remote_opcode_t int2opcode_apple(int opcode);
+adafruit_remote_opcode_t int2opcode_adafruit(int opcode);
 const char* opcode2str_apple(int opcode);
+const char* opcode2str_adafruit(int opcode);
 
 int ir_getAddr(signed char* decoded_pulses);
 int ir_getOpcode(signed char* decoded_pulses);
+
+ir_remote_type_t ir_addr2remotetype(int addr);
 
 inline BOOL ir_isInitPulse(int a, int b);
 inline BOOL ir_isRepeatPulse(int a, int b);
@@ -75,9 +79,23 @@ char ir_receive(ir_cmd_t* cmd_ptr) {
     ir_ready = !is_pulse_buffer_empty();
     
     cmd_ptr->addr = ir_getAddr(decoded_pulses);
-    cmd_ptr->opcode = int2opcode_apple(ir_getOpcode(decoded_pulses) >> 4);
+    cmd_ptr->remote_type = ir_addr2remotetype(cmd_ptr->addr);
     cmd_ptr->is_repeat = (decoded_pulses[1] == 99);
-    cmd_ptr->str = opcode2str_apple(cmd_ptr->opcode);
+    cmd_ptr->opcode = ir_getOpcode(decoded_pulses);
+    
+    if (cmd_ptr->remote_type == ir_remote_type_apple) {
+        // Divide the opcode by 16 to simplify calculations
+        cmd_ptr->opcode = int2opcode_apple(cmd_ptr->opcode >> 4); 
+        cmd_ptr->str = opcode2str_apple(cmd_ptr->opcode);
+    }
+    else if (cmd_ptr->remote_type == ir_remote_type_adafruit) {
+        // Divide the opcode by 4 to simplify calculations
+        cmd_ptr->opcode = int2opcode_adafruit(cmd_ptr->opcode >> 2);
+        cmd_ptr->str = opcode2str_adafruit(cmd_ptr->opcode);
+    }
+    else {
+        cmd_ptr->str = opcode2str_apple(apple_remote_opcode_unknown);
+    }
     
     return 0;
 }
@@ -164,6 +182,17 @@ inline void finish_reading_pulse() {
     pulses_start_idx = (pulses_start_idx+1) % PULSES_BUFFER_SIZE;
 }
 
+ir_remote_type_t ir_addr2remotetype(int addr) {
+    switch(addr) {
+        case APPLE_REMOTE_ADDR:
+            return ir_remote_type_apple;
+        case ADAFRUIT_REMOTE_ADDR:
+            return ir_remote_type_adafruit;
+        default:
+            return ir_remote_type_unknown;
+    }
+}
+
 int ir_getAddr(signed char* decoded_pulses) {
     static int addr, i;
     addr = 0;
@@ -181,7 +210,6 @@ int ir_getOpcode(signed char* decoded_pulses) {
     }
     return opcode;
 }
-
 
 inline BOOL ir_isInitPulse(int a, int b) {
     return (a >= 5650 && a <= 5750) && (b >= 2750 && b <= 2850);

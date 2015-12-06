@@ -12,9 +12,9 @@
 #define ADAFRUIT_REMOTE_ADDR 0
 
 typedef enum ir_remote_type {
-    unknown,
-    apple,
-    adafruit
+    ir_remote_type_unknown,
+    ir_remote_type_apple,
+    ir_remote_type_adafruit
 } ir_remote_type_t;
 
 typedef enum apple_remote_opcode {
