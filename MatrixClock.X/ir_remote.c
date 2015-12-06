@@ -5,87 +5,45 @@
 #include "rgb_matrix.h"
 #include "matrix_gfx.h"
 
-// The arrays we are storing the pulses in
-unsigned short last_pulses[100][2]; // stores the previous pulse
-unsigned short pulses[100][2]; // pair is 0 is low 1 is high pulse
-volatile unsigned short currentpulse = 0; // index for pulses we are storing
+/************************* Variable declarations ******************************/
 
-// Decoding the pulses
-int in_pulse = 0;
-int decoded_pulses[50];
-int opcode; // Holds the opcode's int representation after decode
-char last_opcode_str[7];
+// String names for opcodes
+static const char * const adafruit_remote_mapping[];
+static const char * const apple_remote_mapping[];
 
+// The pulse ring buffer for montoring the pulses
+// Even indexs are low pulses, odds are high
+#define PULSES_BUFFER_SIZE 5
+unsigned short pulses_buffer[PULSES_BUFFER_SIZE][200];
+volatile char pulses_start_idx; // index to read pulse array
+volatile char pulses_end_idx;   // index to write pulse array
+volatile unsigned short curr_pulse_idx = 0; // current pulse to record
 // For reseting the pulses on timer overflow (20ms)
-int end_pulse = 0; // 0 if we just finished pulse tranvsfer to mem
+volatile BOOL end_pulse = FALSE;
 
-// Base Location of cursor, for table writing, temp string for writing
-int init_cursor = 0;
-int cursor;
+/********************* Forward declarations for helpers ***********************/
 
-int counter;
+inline BOOL is_pulse_buffer_full();
+inline BOOL is_pulse_buffer_empty();
+inline unsigned short *pulse_array_to_write();
+inline void finish_writing_pulse();
+inline unsigned short *pulse_array_to_read();
+inline void finish_reading_pulse();
 
-#define APPLE_REMOTE_ADDR 0b11101110
+apple_remote_opcode_t int2opcode_apple(int opcode);
+const char* opcode2str_apple(int opcode);
 
-const char * const apple_remote_mapping[] = {
-    "UNK",
-    "BACK",
-    "FORW",
-    "-",
-    "+",
-    "ENTER",
-    "MENU",
-};
+int ir_getAddr(signed char* decoded_pulses);
+int ir_getOpcode(signed char* decoded_pulses);
 
-const char* opcode2str_apple(int opcode) {
-    switch (opcode) {
-        case 1:
-            return apple_remote_mapping[1];
-            break;
-        case 2:
-            return apple_remote_mapping[5];
-            break;
-        case 4:
-            return apple_remote_mapping[6];
-            break;
-        case 11:
-            return apple_remote_mapping[3];
-            break;
-        case 13:
-            return apple_remote_mapping[4];
-            break;
-        case 14:
-            return apple_remote_mapping[2];
-            break;
-        default:
-            return apple_remote_mapping[0];
-    }
-}
+inline BOOL ir_isInitPulse(int a, int b);
+inline BOOL ir_isRepeatPulse(int a, int b);
+inline char ir_parseLogicPulse(int a);
 
+void ir_decodepulses(signed char* decoded_pulses);
 
-int getAddr() {
-    static int addr, i;
-    addr = 0;
-    for(i = 2; i <= 9; i++){  // First check to see if the address is 0
-        addr |= (decoded_pulses[i] << (i-2));
-    }
-    return addr;
-}
-
-int getOpcode() {
-    static int opcode, i;
-    opcode = 0;
-    for(i = 18; i < 22; i++){
-        opcode = opcode << 1;
-        opcode = decoded_pulses[i] + opcode;
-    }
-    return opcode;
-}
 
 void ir_init() {
-    bufferInit(ir_received_ids, 5, char);
-    bufferInit(ir_received_times, 5, unsigned long);
-
     // Configure Timer 3
     // Setup timer3 on, interrupts, internal clock, perscalar of 64, toggle rate
     // System CPU is configured to be 40 MHz
@@ -106,18 +64,136 @@ void ir_init() {
     mPORTBSetPinsDigitalIn(BIT_13);  // set pin as input
 }
 
-inline BOOL ir_isINITPulse(int a, int b){
+// Return 1 if ir is not ready, -1 on error, and 0 on success
+char ir_receive(ir_cmd_t* cmd_ptr) {
+    static char decoded_pulses[50];
+    
+    if (!cmd_ptr) return -1;
+    if (!ir_ready) return 1;
+    
+    ir_decodepulses(decoded_pulses);
+    ir_ready = !is_pulse_buffer_empty();
+    
+    cmd_ptr->addr = ir_getAddr(decoded_pulses);
+    cmd_ptr->opcode = int2opcode_apple(ir_getOpcode(decoded_pulses) >> 4);
+    cmd_ptr->is_repeat = (decoded_pulses[1] == 99);
+    cmd_ptr->str = opcode2str_apple(cmd_ptr->opcode);
+    
+    return 0;
+}
+
+//=== Capture 1 ISR ================================
+void __ISR(_INPUT_CAPTURE_1_VECTOR, IPL3AUTO) C1Handler(void){
+    static capture;
+
+    if (!is_pulse_buffer_full()) {
+        capture = mIC1ReadCapture();   // Capture time
+        WriteTimer3(0);            // Reset Timer to 0
+        pulse_array_to_write()[curr_pulse_idx++] = capture;
+        
+        end_pulse = TRUE;
+    }
+    
+    mIC1ClearIntFlag();
+}
+
+//=== Timer 2 Overflow Handler
+// Will clear the pulses variable to reset for next capture
+void __ISR(_TIMER_3_VECTOR, IPL2AUTO) Timer3Handler(void){
+    if (end_pulse){
+        end_pulse = FALSE;
+        curr_pulse_idx = 0;
+        ir_ready = TRUE;
+        
+        finish_writing_pulse();
+    }
+    mT3ClearIntFlag();
+}
+
+
+void ir_decodepulses(signed char* decoded_pulses) {
+    static char i;
+    static BOOL in_pulse;
+    static unsigned short * pulse_array;
+        
+    pulse_array = pulse_array_to_read();
+    for(i = 0; i < 40; i++){
+        if(ir_isRepeatPulse(pulse_array[(i<<1) + 1], pulse_array[(i+1) << 1])){
+            decoded_pulses[i+1] = 99; // 99 signifies repeat pulse
+            break;
+        }
+        if(ir_isInitPulse(pulse_array[(i<<1) + 1],pulse_array[((i+1) << 1)])){ // First find a begining pulse
+            decoded_pulses[i+1] = 52; // 52 signifies init pulse
+            in_pulse = 1;
+            i++;
+            continue;
+        }
+        if(in_pulse = 1){ // Once we are in the pulse, then decode the pulses via gaps
+            decoded_pulses[i] = ir_parseLogicPulse(pulse_array[i<<1]);
+        }
+    }
+
+    finish_reading_pulse();
+}
+
+inline BOOL is_pulse_buffer_full() {
+    return ((pulses_end_idx+1) % PULSES_BUFFER_SIZE) == pulses_start_idx;
+}
+
+inline BOOL is_pulse_buffer_empty() {
+    return (pulses_end_idx == pulses_start_idx);
+}
+
+inline unsigned short *pulse_array_to_write() {
+    return pulses_buffer[pulses_end_idx];
+}
+
+inline void finish_writing_pulse() {
+    pulses_end_idx = (pulses_end_idx+1) % PULSES_BUFFER_SIZE;
+    if (is_pulse_buffer_empty()) {
+        pulses_start_idx = (pulses_start_idx+1) % PULSES_BUFFER_SIZE;
+    }
+}
+
+inline unsigned short *pulse_array_to_read() {
+    return pulses_buffer[pulses_start_idx];
+}
+
+inline void finish_reading_pulse() {
+    memset(pulses_buffer[pulses_start_idx], 0, 200);
+    pulses_start_idx = (pulses_start_idx+1) % PULSES_BUFFER_SIZE;
+}
+
+int ir_getAddr(signed char* decoded_pulses) {
+    static int addr, i;
+    addr = 0;
+    for(i = 2; i <= 9; i++){  // First check to see if the address is 0
+        addr |= (decoded_pulses[i] << (i-2));
+    }
+    return addr;
+}
+
+int ir_getOpcode(signed char* decoded_pulses) {
+    static int opcode, i;
+    opcode = 0;
+    for(i = 18; i < 26; i++){
+        opcode = decoded_pulses[i] + (opcode << 1);
+    }
+    return opcode;
+}
+
+
+inline BOOL ir_isInitPulse(int a, int b) {
     return (a >= 5650 && a <= 5750) && (b >= 2750 && b <= 2850);
 }
 
 // Detects a Repeat Pulse
-inline BOOL ir_isREPEATPulse(int a, int b){
+inline BOOL ir_isRepeatPulse(int a, int b) {
     return (a >= 5650 && a <= 5750) && (b >= 1350 && b <= 1450);
 }
 
-
 // Decodes Logical Pulses
-inline char ir_isLogicPulse(int a){
+inline char ir_parseLogicPulse(int a) {
     if(a >= 300 && a <= 400){ // 0 logical pulse
         return 0;
     }
@@ -127,26 +203,157 @@ inline char ir_isLogicPulse(int a){
     return 2;
 }
 
-const char *getPulseCode(void){
-    static char i;
-
-    if(decoded_pulses[1] == 99){
-        return "Repeat";
-    }
-    for(i = 2; i <= 9; i++){  // First check to see if the address is 0
-        if(decoded_pulses[i]){
-            return "Addr Err";
-        }
-    }
-    opcode = 0;
-    for(i = 18; i <= 25; i++){
-        opcode = opcode << 1;
-        opcode = decoded_pulses[i] + opcode;
-    }
-    return ir_opcode_table[opcode];
+apple_remote_opcode_t int2opcode_apple(int opcode) {
+    switch (opcode) {
+        case apple_remote_opcode_back:
+            return apple_remote_opcode_back;
+            break;
+        case apple_remote_opcode_enter:
+            return apple_remote_opcode_enter;
+            break;
+        case apple_remote_opcode_menu:
+            return apple_remote_opcode_menu;
+            break;
+        case apple_remote_opcode_minus:
+            return apple_remote_opcode_minus;
+            break;
+        case apple_remote_opcode_plus:
+            return apple_remote_opcode_plus;
+            break;
+        case apple_remote_opcode_forw:
+            return apple_remote_opcode_forw;
+            break;
+        default:
+            return apple_remote_opcode_unknown;
+    }  
 }
 
- void matrix_drawIRPulses(void) {
+const char* opcode2str_apple(int opcode) {
+    switch (opcode) {
+        case apple_remote_opcode_back:
+            return apple_remote_mapping[1];
+            break;
+        case apple_remote_opcode_enter:
+            return apple_remote_mapping[5];
+            break;
+        case apple_remote_opcode_menu:
+            return apple_remote_mapping[6];
+            break;
+        case apple_remote_opcode_minus:
+            return apple_remote_mapping[3];
+            break;
+        case apple_remote_opcode_plus:
+            return apple_remote_mapping[4];
+            break;
+        case apple_remote_opcode_forw:
+            return apple_remote_mapping[2];
+            break;
+        default:
+            return apple_remote_mapping[0];
+    }
+}
+
+adafruit_remote_opcode_t int2opcode_adafruit(int opcode) {
+    switch (opcode) {
+        case adafruit_remote_opcode_vol_minus:
+            return adafruit_remote_opcode_vol_minus;  
+        case adafruit_remote_opcode_1:
+            return adafruit_remote_opcode_1;  
+        case adafruit_remote_opcode_ch_minus:
+            return adafruit_remote_opcode_ch_minus;  
+        case adafruit_remote_opcode_7:
+            return adafruit_remote_opcode_7;  
+        case adafruit_remote_opcode_setup:
+            return adafruit_remote_opcode_setup;  
+        case adafruit_remote_opcode_4:
+            return adafruit_remote_opcode_4;  
+        case adafruit_remote_opcode_10_plus:
+            return adafruit_remote_opcode_10_plus;  
+        case adafruit_remote_opcode_vol_plus:
+            return adafruit_remote_opcode_vol_plus;  
+        case adafruit_remote_opcode_3:
+            return adafruit_remote_opcode_3;  
+        case adafruit_remote_opcode_ch_plus:
+            return adafruit_remote_opcode_ch_plus;  
+        case adafruit_remote_opcode_9:
+            return adafruit_remote_opcode_9;  
+        case adafruit_remote_opcode_stop:
+            return adafruit_remote_opcode_stop;  
+        case adafruit_remote_opcode_6:
+            return adafruit_remote_opcode_6;  
+        case adafruit_remote_opcode_replay:
+            return adafruit_remote_opcode_replay;  
+        case adafruit_remote_opcode_play:
+            return adafruit_remote_opcode_play;  
+        case adafruit_remote_opcode_2:
+            return adafruit_remote_opcode_2;  
+        case adafruit_remote_opcode_enter:
+            return adafruit_remote_opcode_enter;  
+        case adafruit_remote_opcode_8:
+            return adafruit_remote_opcode_8;  
+        case adafruit_remote_opcode_prev:
+            return adafruit_remote_opcode_prev;  
+        case adafruit_remote_opcode_5:
+            return adafruit_remote_opcode_5; 
+        case adafruit_remote_opcode_next:
+            return adafruit_remote_opcode_next; 
+        
+        default:
+            return adafruit_remote_opcode_unknown;
+    }
+}
+
+const char* opcode2str_adafruit(int opcode) {
+    switch (opcode) {
+        case adafruit_remote_opcode_vol_minus:
+            return apple_remote_mapping[1];  
+        case adafruit_remote_opcode_1:
+            return apple_remote_mapping[2];  
+        case adafruit_remote_opcode_ch_minus:
+            return apple_remote_mapping[3];  
+        case adafruit_remote_opcode_7:
+            return apple_remote_mapping[4];  
+        case adafruit_remote_opcode_setup:
+            return apple_remote_mapping[5];  
+        case adafruit_remote_opcode_4:
+            return apple_remote_mapping[6];  
+        case adafruit_remote_opcode_10_plus:
+            return apple_remote_mapping[7];  
+        case adafruit_remote_opcode_vol_plus:
+            return apple_remote_mapping[8];  
+        case adafruit_remote_opcode_3:
+            return apple_remote_mapping[9];  
+        case adafruit_remote_opcode_ch_plus:
+            return apple_remote_mapping[10];  
+        case adafruit_remote_opcode_9:
+            return apple_remote_mapping[11];  
+        case adafruit_remote_opcode_stop:
+            return apple_remote_mapping[12];  
+        case adafruit_remote_opcode_6:
+            return apple_remote_mapping[13];  
+        case adafruit_remote_opcode_replay:
+            return apple_remote_mapping[14];  
+        case adafruit_remote_opcode_play:
+            return apple_remote_mapping[15];  
+        case adafruit_remote_opcode_2:
+            return apple_remote_mapping[16];  
+        case adafruit_remote_opcode_enter:
+            return apple_remote_mapping[17];  
+        case adafruit_remote_opcode_8:
+            return apple_remote_mapping[18];  
+        case adafruit_remote_opcode_prev:
+            return apple_remote_mapping[19];  
+        case adafruit_remote_opcode_5:
+            return apple_remote_mapping[20]; 
+        case adafruit_remote_opcode_next:
+            return apple_remote_mapping[21]; 
+        
+        default:
+            return adafruit_remote_mapping[0];
+    }
+}
+
+void matrix_drawIRPulses(signed char *decoded_pulses) {
     static unsigned char i;
     static const char num_in_row = 20;
     
@@ -167,140 +374,37 @@ const char *getPulseCode(void){
     }
 }
 
-
-void ir_decodepulses(void){
-    static char i;
-    for(i = 0; i < 40; i++){
-        if(ir_isREPEATPulse(last_pulses[i][1], last_pulses[i+1][0])){
-            decoded_pulses[i+1] = 99; // 99 signifies repeat pulse
-            break;
-        }
-        if(ir_isINITPulse(last_pulses[i][1],last_pulses[i+1][0])){ // First find a begining pulse
-            decoded_pulses[i+1] = 52; // 52 signifies init pulse
-            in_pulse = 1;
-            i++;
-            continue;
-        }
-        if(in_pulse = 1){ // Once we are in the pulse, then decode the pulses via gaps
-            decoded_pulses[i] = ir_isLogicPulse(last_pulses[i][0]);
-        }
-    }
-}
-
-unsigned char getPulseId() {
-    char opcode, i;
-
-    if (decoded_pulses[1] == 99) {
-        return 15;// REPEAT CODE
-    }
-
-    for(i = 2; i <= 9; i++) {
-        if (decoded_pulses[i]) {
-            return 31;// ADDRS Err
-        }
-    }
-
-    // We are using pulse ID as the native opcode divide by 4
-    // Since this reduces the mapping and doesn't lose any info
-    for (i = 18; i < 22; i++) {
-        opcode = (opcode << 1) + decoded_pulses[i];
-    }
-    
-    return opcode;
-}
-
-char ir_receive(ir_cmd_t* cmd_ptr) {
-    if (!cmd_ptr) return -1;
-    if (!ir_ready) return 1;
-    
-    ir_decodepulses();
-    ir_ready = FALSE;
-    
-    cmd_ptr->addr = getAddr();
-    cmd_ptr->opcode = getOpcode();
-    cmd_ptr->is_repeat = (decoded_pulses[1] == 99);
-    cmd_ptr->str = opcode2str_apple(cmd_ptr->opcode);
-    
-    return 0;
-}
-
-//=== Capture 1 ISR ================================
-void __ISR(_INPUT_CAPTURE_1_VECTOR, IPL3AUTO) C1Handler(void){
-    static BOOL pos = 0; // High/Low Voltage
-    static capture;
-
-    counter++;
-    capture = mIC1ReadCapture();   // Capture time
-    WriteTimer3(0);            // Reset Timer to 0
-    if(pos == 1){   // If we went HIGH/LOW
-        pulses[currentpulse][0] = capture;
-    }
-    else{           // If we went LOW/HIGH
-        pulses[currentpulse][1] = capture;
-        currentpulse++;
-    }
-    pos = !pos;
-    end_pulse = TRUE;
-    mIC1ClearIntFlag();
-}
-
-//=== Timer 2 Overflow Handler
-// Will clear the pulses variable to reset for next capture
-void __ISR(_TIMER_3_VECTOR, IPL2AUTO) Timer3Handler(void){
-    if (end_pulse){
-        memcpy(*last_pulses, *pulses, sizeof(pulses));
-        memset(*pulses, 0, sizeof(pulses));
-        end_pulse = FALSE;
-        currentpulse = 0;
-        ir_ready = TRUE;
-    }
-    mT3ClearIntFlag();
-}
-
-const char * const ir_opcode_table[] = {
+static const char * const adafruit_remote_mapping[] = {
+    "UNK",
     "Vol-",   //0x00 Vol-
-    "NULL",
     "1",         //0x08 1
-    "NULL",
     "CH-",     //0x10 CH-
-    "NULL",
     "7",         //0x18 7
-    "NULL",
     "Setup", //0x20 Setup
-    "NULL",
     "4",         //0x28 4
-    "NULL",
     "0.10+", //0x30 0.10+
-    "NULL",
-    "REPEAT", // Designated for repeat code
-    "NULL",
     "Vol+",   //0x40 Vol+
-    "NULL",
     "3",         //0x48 3
-    "NULL",
     "CH+",     //0x50 CH+
-    "NULL",
     "9",         //0x58 9
-    "NULL",
     "Stop",   //0x60 Stop
-    "NULL",
     "6",         //0x68 6
-    "NULL",
     "U-turn", //0x70 U-turn
-    "NULL",
-    "ERR",    // Designated for error
-    "NULL",
     "Play",   //0x80 Play
-    "NULL",
     "2",         //0x88 2
-    "NULL",
     "Enter",  //0x90 Enter
-    "NULL",
     "8",         //0x98 8
-    "NULL",
     "Prev",   //0xA0 Prev
-    "NULL",
     "5",         //0xA8 5
-    "NULL",
     "Next",   //0xB0 Next
+};
+
+static const char * const apple_remote_mapping[] = {
+    "UNK",
+    "BACK",
+    "FORW",
+    "-",
+    "+",
+    "ENTER",
+    "MENU",
 };

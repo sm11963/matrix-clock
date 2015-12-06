@@ -16,7 +16,6 @@
       <itemPath>analog_clock.h</itemPath>
       <itemPath>ir_remote.h</itemPath>
       <itemPath>serial_ext.h</itemPath>
-      <itemPath>ringbuffer.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -31,8 +30,8 @@
       <itemPath>rgb_matrix.c</itemPath>
       <itemPath>datetime.c</itemPath>
       <itemPath>analog_clock.c</itemPath>
-      <itemPath>ir_remote.c</itemPath>
       <itemPath>pt_cornell_1_2.c</itemPath>
+      <itemPath>ir_remote.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -40,6 +39,9 @@
       <itemPath>Makefile</itemPath>
     </logicalFolder>
   </logicalFolder>
+  <sourceRootList>
+    <Elem>.</Elem>
+  </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
     <conf name="default" type="2">
