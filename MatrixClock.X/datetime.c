@@ -147,7 +147,7 @@ void setDate(unsigned char month, unsigned char mday,
              unsigned char year, unsigned char wday) {
     static rtccDate dt;
 
-    if (month > 11 || mday > 31 || year > 99 || wday > 6) {
+    if (month > 12 || mday > 31 || year > 99 || wday > 6) {
         return;
     }
     
