@@ -32,7 +32,10 @@ if __name__ == "__main__":
     ser = serial.Serial(sys.argv[1], 38400)
 
     while True:
-        cmd = ser.readline().decode().strip()
+        try:
+            cmd = ser.readline().decode().strip()
+        except:
+            print("ERROR: reading from serial")
 
         print(cmd)
         if cmd == "gtd":
