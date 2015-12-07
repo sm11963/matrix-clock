@@ -16,6 +16,9 @@
       <itemPath>ir_remote.h</itemPath>
       <itemPath>serial_ext.h</itemPath>
       <itemPath>clock_gfx.h</itemPath>
+      <itemPath>dragon.h</itemPath>
+      <itemPath>matrix_plasma.h</itemPath>
+      <itemPath>matrix_tests.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -32,6 +35,8 @@
       <itemPath>pt_cornell_1_2.c</itemPath>
       <itemPath>ir_remote.c</itemPath>
       <itemPath>clock_gfx.c</itemPath>
+      <itemPath>matrix_plasma.c</itemPath>
+      <itemPath>matrix_tests.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"

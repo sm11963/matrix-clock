@@ -21,6 +21,8 @@ void draw_dtime(rtccTime dec_tm, rtccDate dec_dt) {
     
     const char* month_str = months_long[dec_dt.mon - 1];
     
+    matrix_setTextSize(1);
+    
     matrix_setCursor(((8-strlen(month_str))<<1),2);
     matrix_setTextColor(matrix_color444(5,5,5));
     matrix_write3x5String(months_long[dec_dt.mon - 1]);

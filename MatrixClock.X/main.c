@@ -19,6 +19,7 @@
 #include "ir_remote.h"
 #include "serial_ext.h"
 #include "clock_gfx.h"
+#include "matrix_tests.h"
 
 ir_cmd_t ir_cmd;
 BOOL ir_cmd_new = FALSE;
@@ -31,6 +32,7 @@ rtccDate bcd_dt, dec_dt;
 
 // === Update Matrix Thread ====================================================
 static PT_THREAD(protothread_update_matrix(struct pt *pt)) {
+    static const char num_displays = 7;
     static char display_face = 0;
     static unsigned char last_update = 60;
     PT_BEGIN(pt);
@@ -49,12 +51,28 @@ static PT_THREAD(protothread_update_matrix(struct pt *pt)) {
         if (ir_cmd_new && ir_cmd.remote_type == ir_remote_type_apple) { 
             ir_cmd_new = FALSE;
             if (ir_cmd.opcode == apple_remote_opcode_minus) {
-                display_face = 0;
+                display_face = (display_face + 1) % num_displays;
             }
             else if (ir_cmd.opcode == apple_remote_opcode_plus) {
-                display_face = 1;
+                if(--display_face < 0) {
+                    display_face = num_displays-1;
+                }
             }
             else if (ir_cmd.opcode == apple_remote_opcode_enter) {
+                pt_printl("gtd");
+            }
+        } 
+        else if (ir_cmd_new && ir_cmd.remote_type == ir_remote_type_adafruit) { 
+            ir_cmd_new = FALSE;
+            if (ir_cmd.opcode == adafruit_remote_opcode_prev) {
+                display_face = (display_face + 1) % num_displays;
+            }
+            else if (ir_cmd.opcode == adafruit_remote_opcode_next) {
+                if(--display_face < 0) {
+                    display_face = num_displays-1;
+                }
+            }
+            else if (ir_cmd.opcode == adafruit_remote_opcode_enter) {
                 pt_printl("gtd");
             }
         }
@@ -63,6 +81,23 @@ static PT_THREAD(protothread_update_matrix(struct pt *pt)) {
         
         if (display_face == 1) {
             draw_dtime(dec_tm, dec_dt);
+        }
+        else if (display_face == 2) {
+            draw_scroll_test_frame();
+            PT_YIELD_TIME_msec(20);        
+        }
+        else if (display_face == 3) {
+            draw_colorwheel();
+        }
+        else if (display_face == 4) {
+            draw_levels();
+        }
+        else if (display_face == 5) {
+            draw_plasma_frame();
+            PT_YIELD_TIME_msec(50);
+        }
+        else if (display_face == 6) {
+            draw_plasma_frame();
         }
         else {
             draw_atime(dec_tm, dec_dt);
