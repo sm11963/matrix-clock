@@ -34,7 +34,7 @@ if __name__ == "__main__":
     while True:
         try:
             cmd = ser.readline().decode().strip()
-        except:
+        except UnicodeDecodeError:
             print("ERROR: reading from serial")
 
         print(cmd)

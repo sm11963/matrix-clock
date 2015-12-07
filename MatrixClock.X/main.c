@@ -20,9 +20,6 @@
 #include "serial_ext.h"
 #include "clock_gfx.h"
 
-// === Update TFT Thread ==================================================
-// Just updates the TFT Periodically
-
 ir_cmd_t ir_cmd;
 BOOL ir_cmd_new = FALSE;
 
@@ -32,6 +29,7 @@ struct pt pt_update_matrix, pt_serial, pt_ir;
 rtccTime bcd_tm, dec_tm;
 rtccDate bcd_dt, dec_dt;
 
+// === Update Matrix Thread ====================================================
 static PT_THREAD(protothread_update_matrix(struct pt *pt)) {
     static char display_face = 0;
     static unsigned char last_update = 60;
@@ -77,7 +75,7 @@ static PT_THREAD(protothread_update_matrix(struct pt *pt)) {
     PT_END(pt);
 }
 
-// === Update Serial Thread ==================================================
+// === Update Serial Thread ====================================================
 static PT_THREAD(protothread_serial(struct pt *pt)) {
     PT_BEGIN(pt);
     
@@ -103,7 +101,7 @@ static PT_THREAD(protothread_serial(struct pt *pt)) {
     PT_END(pt);
 } // Update Serial thread
 
-// === Handle IR Thread ==================================================
+// === Handle IR Thread ========================================================
 static PT_THREAD(protothread_ir(struct pt *pt)) {
     PT_BEGIN(pt);
     while(TRUE){
@@ -114,8 +112,7 @@ static PT_THREAD(protothread_ir(struct pt *pt)) {
     PT_END(pt);
 } // Handle IR thread
 
-
-// === Main  ======================================================
+// === Main  ===================================================================
 void main(void) {
     // Configure the device for maximum performance but do not change the PBDIV
 	// Given the options, this function will change the flash wait states, RAM
