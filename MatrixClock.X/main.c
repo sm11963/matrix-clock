@@ -19,27 +19,21 @@
 #include "pt_cornell_1_2.h"
 #include "ir_remote.h"
 #include "serial_ext.h"
+#include "clock_gfx.h"
 
 // === Update TFT Thread ==================================================
 // Just updates the TFT Periodically
 
 static struct pt pt_ir;
+ir_cmd_t ir_cmd;
+BOOL ir_cmd_new = FALSE;
 
 static PT_THREAD(protothread_ir(struct pt *pt)) {
-    static ir_cmd_t ir_cmd;
-    static char str_buf[50];
-    
     PT_BEGIN(pt);
     while(TRUE){
         PT_YIELD_UNTIL( pt, ir_ready);
         ir_receive(&ir_cmd);
-        matrix_fillScreen(COLOR565_BLACK);
-        matrix_setCursor(0,0);
-        matrix_write3x5String(ir_cmd.str);
-        sprintf(str_buf, "%u", time_tick_millsec);
-        matrix_setCursor(0,24);
-        matrix_write3x5String(str_buf);
-        matrix_swapBuffers(FALSE);
+        ir_cmd_new = TRUE;
     }
     PT_END(pt);
 }
@@ -48,94 +42,18 @@ void rtcc_init() {
     rtccTime tm;
     rtccDate dt;
     
+    // Time this code was finalized
     tm.l=0x00;
-    tm.sec=0x50;                                                                 
-    tm.min=0x59;
-    tm.hour=0x23;
+    tm.sec=0x00;                                                                 
+    tm.min=0x15;
+    tm.hour=0x19;
 
     dt.wday=0x6;
-    dt.mday=0x28;
-    dt.mon=0x11;
+    dt.mday=0x06;
+    dt.mon=0x12;
     dt.year=0x15;
     
     RtccOpen(tm.l, dt.l, 0);
-}
-
-void draw_dtime(rtccTime dec_tm, rtccDate dec_dt) {
-    char time_buf[10];
-    
-    const char* month_str = months_long[dec_dt.mon - 1];
-    
-    matrix_fillScreen(COLOR565_BLACK);
-    matrix_setCursor(((8-strlen(month_str))<<1),2);
-    matrix_setTextColor(matrix_color444(5,5,5));
-    matrix_write3x5String(months_long[dec_dt.mon - 1]);
-
-    matrix_setTextColor(0xffff);
-    sprintf(time_buf, "%d:%02d", twentyFour2TwelveHour(dec_tm.hour), dec_tm.min);
-    matrix_setCursor(((5-strlen(time_buf))*3)+1,12);
-    matrix_writeString(time_buf);
-
-    if (dec_tm.sec < 30) {
-        matrix_drawLine(1,20,dec_tm.sec+1,20,matrix_color444(1,0,0));
-    }
-    else {
-        matrix_drawLine(1,20,30,20,matrix_color444(1,0,0));
-        matrix_drawLine(1,21,dec_tm.sec-29,21, matrix_color444(1,0,0));
-    }
-
-    if (++dec_tm.sec > 59) {
-        dec_tm.sec = 0;
-    }
-
-    matrix_setCursor(((dec_dt.mday > 9) ? 4:6),25);
-    matrix_setTextColor(matrix_color444(5,5,5));
-    sprintf(time_buf, "%s %d", days_short[dec_dt.wday], dec_dt.mday);
-    matrix_write3x5String(time_buf);
-
-    matrix_swapBuffers(FALSE);
-}
-
-inline void draw_clock_face(UINT16 circle_c, UINT16 marker_c) {
-    matrix_drawCircle(16,16,16,circle_c);
-    matrix_drawCircle(16,16,15,circle_c);
-    matrix_drawPixel(16,1,marker_c);
-    matrix_drawPixel(24,3,marker_c);
-    matrix_drawPixel(29,8,marker_c);
-    matrix_drawPixel(31,16,marker_c);
-    matrix_drawPixel(29,24,marker_c);
-    matrix_drawPixel(24,29,marker_c);
-    matrix_drawPixel(16,31,marker_c);
-    matrix_drawPixel(8,29,marker_c);
-    matrix_drawPixel(3,24,marker_c);
-    matrix_drawPixel(1,16,marker_c);
-    matrix_drawPixel(3,8,marker_c);
-    matrix_drawPixel(8,3,marker_c); 
-}
-
-
-void draw_atime(rtccTime dec_tm, rtccDate dec_dt) {
-    char point_sec[2];
-    char point_min[2];
-    char point_hr[2];
-    
-    // We want to re-draw the whole screen for simplicity
-    matrix_fillScreen(COLOR565_BLACK);
-       
-    draw_clock_face(matrix_color444(0,0,5), COLOR565_CYAN);
-    
-    // Use helpers to get points to draw clock hands
-    get_end_pnt60(dec_tm.sec, point_sec);
-    get_end_pnt60(dec_tm.min, point_min);
-    get_end_pnt12((dec_tm.hour % 12), point_hr);
-
-    // Draw lines for each clock hand
-    matrix_drawLine(16,16,16+point_sec[0],16+point_sec[1],matrix_color444(0,2,1));
-    matrix_drawLine(16,16,16+point_min[0],16+point_min[1],COLOR565_MAGENTA);
-    matrix_drawLine(16,16,16+point_hr[0],16+point_hr[1],COLOR565_YELLOW);
-
-    // Dont forget to enable the new frame
-    matrix_swapBuffers(FALSE);  
 }
 
 struct pt pt_update_matrix, pt_serial;
@@ -145,20 +63,68 @@ rtccTime bcd_tm, dec_tm;
 rtccDate bcd_dt, dec_dt;
 
 static PT_THREAD(protothread_update_matrix(struct pt *pt)) {
+    static char display_face = 0;
     PT_BEGIN(pt);
     
     while(TRUE) {    
-        //RtccGetTimeDate(&bcd_tm, &bcd_dt);
+        RtccGetTimeDate(&bcd_tm, &bcd_dt);
         // Convert BCD codified date/time to decimal
-        //dec_tm = bcdTime2DecTime(bcd_tm);
-        //dec_dt = bcdDate2DecDate(bcd_dt);
+        dec_tm = bcdTime2DecTime(bcd_tm);
+        dec_dt = bcdDate2DecDate(bcd_dt);
         
-        draw_dtime(dec_tm, dec_dt);
-        //draw_atime(dec_tm, dec_dt);
+        if (dec_tm.min % 30 == 0) {
+            pt_printl("gtd");
+        }
+        
+        if (ir_cmd_new && ir_cmd.remote_type == ir_remote_type_apple) { 
+            ir_cmd_new = FALSE;
+            if (ir_cmd.opcode == apple_remote_opcode_minus) {
+                display_face = 0;
+            }
+            else if (ir_cmd.opcode == apple_remote_opcode_plus) {
+                display_face = 1;
+            }
+            else if (ir_cmd.opcode == apple_remote_opcode_enter) {
+                pt_printl("gtd");
+            }
+        }
+        
+        matrix_fillScreen(COLOR565_BLACK);
+        
+        if (display_face == 1) {
+            draw_dtime(dec_tm, dec_dt);
+        }
+        else {
+            draw_atime(dec_tm, dec_dt);
+        }
         PT_YIELD(pt);
+        
+        matrix_swapBuffers(FALSE);
     }
     
     PT_END(pt);
+}
+
+void setTime(char hour, char min, char sec) {
+    static rtccTime tm;
+
+    tm.l=0x00;
+    tm.sec=sec;                                                                 
+    tm.min=min;
+    tm.hour=hour;
+    
+    RtccSetTime(decTime2BcdTime(tm).l);
+}
+
+void setDate(char month, char mday, char year, char wday) {
+    rtccDate dt;
+
+    dt.wday=wday;
+    dt.mday=mday;
+    dt.mon=month;
+    dt.year=year;
+    
+    RtccSetDate(decDate2BcdDate(dt).l);
 }
 
 // === Update Serial Thread ==================================================
@@ -168,21 +134,20 @@ static PT_THREAD(protothread_serial(struct pt *pt)) {
     static int in_hr, in_min, in_sec;
     static int in_mday, in_wday, in_mon, in_yr;
     
-    while (1) {
+    pt_printl("gtd"); // Request initial time/date update (Get Time Date)
+    
+    while (TRUE) {
         PT_SPAWN( pt, &pt_get, PT_GetSerialBuffer(&pt_get) );
         if (sscanf(PT_term_buffer, "t %d:%d:%d", &in_hr, &in_min, &in_sec) == 3) {
-            dec_tm.hour = in_hr;
-            dec_tm.min = in_min;
-            dec_tm.sec = in_sec;
+            setTime(in_hr, in_min, in_sec);
+            pt_printl("ok");
         }
         else if (sscanf(PT_term_buffer, "d %d/%d/%d-%d", &in_mon, &in_mday, &in_yr, &in_wday) == 4) {
-            dec_dt.mday = in_mday;
-            dec_dt.wday = in_wday;
-            dec_dt.mon = in_mon;
-            dec_dt.year = in_yr;
+            setDate(in_mon, in_mday, in_yr, in_wday);
+            pt_printl("ok");
         }
         else {
-            pt_printl("Invalid");
+            pt_printl("BAD CMD");
         }
     } // END WHILE(1)
     PT_END(pt);
@@ -211,8 +176,8 @@ void main(void) {
     PT_INIT(&pt_ir);
     
     while (TRUE) {
-        //PT_SCHEDULE(protothread_update_matrix(&pt_update_matrix));
-        //PT_SCHEDULE(protothread_serial(&pt_serial));
+        PT_SCHEDULE(protothread_update_matrix(&pt_update_matrix));
+        PT_SCHEDULE(protothread_serial(&pt_serial));
         PT_SCHEDULE(protothread_ir(&pt_ir));
     }
 }

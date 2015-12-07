@@ -36,8 +36,9 @@
 #define SYSCLK 40000000
 #define PBCLK SYSCLK    // FPBDIV is DIV_1
 
+// For PT library
 #define use_uart_serial
-#define BAUDRATE 57600
+#define BAUDRATE 38400
 #define pb_clock PBCLK
 
 #endif	/* CONFIG_H */

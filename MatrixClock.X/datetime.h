@@ -19,9 +19,12 @@ extern const char* months_long[];
 extern const char* months_short[];
 
 // Time/date conversion helpers
-unsigned char bcd2char(unsigned char x);
+inline unsigned char bcd2char(unsigned char x);
+inline unsigned char char2bcd(unsigned char x);
 rtccTime bcdTime2DecTime(rtccTime tm);
 rtccDate bcdDate2DecDate(rtccDate dt);
+rtccTime decTime2BcdTime(rtccTime tm);
+rtccDate decDate2BcdDate(rtccDate dt);
 unsigned char twentyFour2TwelveHour(unsigned char hour);
 
 #endif	/* DATETIME_H */
