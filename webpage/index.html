@@ -72,11 +72,11 @@
 
             <h4>Standards</h4>
             <h4>Intellectual Property</h4>
+            <p>This project is based off of the large hobbist community whom work on a various of non-commercial projects involving LED Matrix displays. At this time we were unable to find any patented projects that would seem highly related to the work we have done.</p>
+            <p>We do utilize three libraries in our codebase written by others. The first is the Cornell <a href="http://people.ece.cornell.edu/land/courses/ece4760/PIC32/index_Protothreads.html">protothreading library</a>. Written by Bruce Land, this library contributes by adding a UART interface and threading system (adapted from the <a href="http://dunkels.com/adam/pt/">protothreads library</a> written by Adam Dunkels). We have also made modifications to this library to suit our appilication. The second library we used is the <a href="https://github.com/adafruit/RGB-matrix-Panel">Adafruit RGB Matrix Panel Library for Arduino</a>. We used this library as a means of testing and reverse engineering the interface for controlling the RGB matrix. Our our control library for the RGB matrix is heavily based on the concepts from the Adafruit library but re-written for the PIC32 architecture. Finally, we also adapted and added to the <a href="https://github.com/adafruit/Adafruit-GFX-Library">Adafruit GFX Library for Arduino</a>. We used an already adapted version of this library (adapted by Syed Tahmid Mahbub and can found at <a href="http://tahmidmc.blogspot.com/">his blog</a>). We adapted it further for the matrix as well as adding additional functions as necessary. All of these libraries are open source and have no restrictions on use provided proper referencing.</p>
+
             <h4>Hardware and Software Tradeoffs</h4>
             <h4>High Level Block Diagram</h4>
-
-
-
             <h4>User Interface</h4>
           </div>
       </div>
@@ -225,6 +225,7 @@
           </ul>
           <h3>References</h3>
           <ul>
+            <li><a href="https://github.com/adafruit/RGB-matrix-Panel">Adafruit RGB Matrix Arduino Library</a></li>
             <li><a href="http://adafruit.com">Example Referecne</a></li>
           </ul>
         </div>
