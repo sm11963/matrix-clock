@@ -88,12 +88,31 @@
         <h2>Hardware &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
 
         <h3>Hardware Overview</h3>
+		
+		
 
 
       </div>
       <div class="linklist"> <a name="software"></a>
         <h2>Software &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
+		
+		<h3> IR Sensor </h3>
+		<p> To get the remote control working with our project, the idea was to be able to decode pulses sent from the remote, via an IR Receiver that would translate the signal into a digital signal. This digital signal would then be fed into the Microcontroller and decoded accordingly. Fortunately for us, the TSOP38238 IR Receiver Sensor came with a built-in differential OP-Amp, and so it would output the square pulses for us from the beginning. It was also tuned to 38 KHz, which was what our remote transmitted at. </p>
+		<p> The Adafruit Mini Remote Control that we used uses the NEC IR encoding type for transferring the data of which button was pressed. The protocol is relatively straightforward and is explained with stellar detail over <a href="http://techdocs.altium.com/display/FPGA/NEC+Infrared+Transmission+Protocol">at this website</a>. </p>
+		<p> The difficult part for us, was figuring out the optimal way of decoding these incoming pulses on the Microcontroller in a way that wouldn’t interfere with the large CPU demand of the LED Matrix code. Adafruit graciously included an Adrino tutorial on how they decoded their inputs <a href="https://learn.adafruit.com/ir-sensor"> here.</a> However, this tutorial wasn’t A) optimized for our PIC32, and B) ran the entire code within a loop that would interfere with our LED Matrix code.</p>
+		<p> To this end, we decided to utilize the same ideas we used in the Lab 1 Capacitance Meter. We would make an ISR that would trigger pulse captures, and then when we were certain that an entire pulse was captured, we would decode it. To do this, we had to utilize an Input Capture on RB13 of the PIC32. The setup for this was just as it was in Lab 1, except we trigger the timer capture on every single edge (rising and falling), because for the initialization pulse, we need both the high and the low widths. Once I had captured all the pulse times, I would then store them in an array for decoding. The following image is from the beginning stages of my work with this. Basically, the values you see in the column marked “LOW” are the timer counts for when the signal pulse was low, “HIGH” when it was high. I had set the timer with a prescalar of 64 on a 40 MHz clock, so each count corresponds to about 1.6e-6 seconds. This is the raw timer counts data, and after messing around with it for a while, I determined the following threshold values for various pulses:</p>
+		<img src="assets/ir_test.jpg" alt="IR Pulse Counts on TFT" height="420" width="280">
+		<ul>
+			<li>Initialization Pulse: HIGH 5550 – 5850 counts followed by LOW 2650 – 2950 counts</li>
+			<li>Repeat Pulse: HIGH 5550 - 5850 counts followed by LOW 1250 – 1550 counts</li>
+			<li>Logical 0 Pulse: After Initialization Pulse, LOW 200 – 500 counts</li>
+			<li>Logical 1 Pulse: After Initialization Pulse, LOW 900 – 1200 counts</li>
+		</ul>
+		<p>These thresholds are much higher than probably what is needed, but it helps to allow for a large variation in the case of signal interference, especially whenever you use the remote from a distance.</p>
+		<p>The red numbers are the decoded versions of the pulses to the right. The 52 corresponds to the Initialization Pulse. There was an anomaly with our remote in which the logical inverse of our address (0x00) was always (0xFC) instead of (0xFF). We worked around this by just ignoring the logical inverse portions of our signal in the final decoding stage.
+Once everything was decoded into 1s and 0s, it was easy to then just check that the incoming address was 0x00, and translate the 8-bit opcode to a string.</p>
 
+		
       </div>
       <div class="linklist"> <a name="results"></a>
         <h2>Results &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
