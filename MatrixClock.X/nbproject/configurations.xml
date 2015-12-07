@@ -13,7 +13,6 @@
       <itemPath>pt_cornell_1_2.h</itemPath>
       <itemPath>rgb_matrix.h</itemPath>
       <itemPath>datetime.h</itemPath>
-      <itemPath>analog_clock.h</itemPath>
       <itemPath>ir_remote.h</itemPath>
       <itemPath>serial_ext.h</itemPath>
       <itemPath>clock_gfx.h</itemPath>
@@ -30,7 +29,6 @@
       <itemPath>matrix_gfx.c</itemPath>
       <itemPath>rgb_matrix.c</itemPath>
       <itemPath>datetime.c</itemPath>
-      <itemPath>analog_clock.c</itemPath>
       <itemPath>pt_cornell_1_2.c</itemPath>
       <itemPath>ir_remote.c</itemPath>
       <itemPath>clock_gfx.c</itemPath>

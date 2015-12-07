@@ -502,6 +502,17 @@ inline void matrix_write3x5String(const char* str){
     }
 }
 
+void matrix_printf3x5(const char* fmt, ...) {
+    static char buffer[100];
+    va_list args;
+    va_start(args, fmt);
+    
+    vsprintf(buffer, fmt, args);
+    matrix_write3x5String(buffer);
+    
+    va_end(args);
+}
+
 void matrix_draw3x5Char(short x, short y, unsigned char c, unsigned short color, unsigned short bg, unsigned char size) {
     static const int cw=4, ch=6;   // Character width and height
     static const int bxw=3, bxh=5; // Character bounding box

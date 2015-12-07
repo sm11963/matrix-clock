@@ -15,7 +15,6 @@
 #include "matrix_gfx.h"
 #include "blocking_delay.h"
 #include "datetime.h"
-#include "analog_clock.h"
 #include "pt_cornell_1_2.h"
 #include "ir_remote.h"
 #include "serial_ext.h"
@@ -24,39 +23,10 @@
 // === Update TFT Thread ==================================================
 // Just updates the TFT Periodically
 
-static struct pt pt_ir;
 ir_cmd_t ir_cmd;
 BOOL ir_cmd_new = FALSE;
 
-static PT_THREAD(protothread_ir(struct pt *pt)) {
-    PT_BEGIN(pt);
-    while(TRUE){
-        PT_YIELD_UNTIL( pt, ir_ready);
-        ir_receive(&ir_cmd);
-        ir_cmd_new = TRUE;
-    }
-    PT_END(pt);
-}
-
-void rtcc_init() {
-    rtccTime tm;
-    rtccDate dt;
-    
-    // Time this code was finalized
-    tm.l=0x00;
-    tm.sec=0x00;                                                                 
-    tm.min=0x15;
-    tm.hour=0x19;
-
-    dt.wday=0x6;
-    dt.mday=0x06;
-    dt.mon=0x12;
-    dt.year=0x15;
-    
-    RtccOpen(tm.l, dt.l, 0);
-}
-
-struct pt pt_update_matrix, pt_serial;
+struct pt pt_update_matrix, pt_serial, pt_ir;
 
 // The original format BCD codified date/time and the decimal versions
 rtccTime bcd_tm, dec_tm;
@@ -64,6 +34,7 @@ rtccDate bcd_dt, dec_dt;
 
 static PT_THREAD(protothread_update_matrix(struct pt *pt)) {
     static char display_face = 0;
+    static unsigned char last_update = 60;
     PT_BEGIN(pt);
     
     while(TRUE) {    
@@ -72,7 +43,8 @@ static PT_THREAD(protothread_update_matrix(struct pt *pt)) {
         dec_tm = bcdTime2DecTime(bcd_tm);
         dec_dt = bcdDate2DecDate(bcd_dt);
         
-        if (dec_tm.min % 30 == 0) {
+        if (last_update != dec_tm.min && dec_tm.min % 10 == 0) {
+            last_update = dec_tm.min;
             pt_printl("gtd");
         }
         
@@ -97,34 +69,12 @@ static PT_THREAD(protothread_update_matrix(struct pt *pt)) {
         else {
             draw_atime(dec_tm, dec_dt);
         }
-        PT_YIELD(pt);
         
         matrix_swapBuffers(FALSE);
+        
+        PT_YIELD(pt);
     }
-    
     PT_END(pt);
-}
-
-void setTime(char hour, char min, char sec) {
-    static rtccTime tm;
-
-    tm.l=0x00;
-    tm.sec=sec;                                                                 
-    tm.min=min;
-    tm.hour=hour;
-    
-    RtccSetTime(decTime2BcdTime(tm).l);
-}
-
-void setDate(char month, char mday, char year, char wday) {
-    rtccDate dt;
-
-    dt.wday=wday;
-    dt.mday=mday;
-    dt.mon=month;
-    dt.year=year;
-    
-    RtccSetDate(decDate2BcdDate(dt).l);
 }
 
 // === Update Serial Thread ==================================================
@@ -152,6 +102,18 @@ static PT_THREAD(protothread_serial(struct pt *pt)) {
     } // END WHILE(1)
     PT_END(pt);
 } // Update Serial thread
+
+// === Handle IR Thread ==================================================
+static PT_THREAD(protothread_ir(struct pt *pt)) {
+    PT_BEGIN(pt);
+    while(TRUE){
+        PT_YIELD_UNTIL( pt, ir_ready);
+        ir_receive(&ir_cmd);
+        ir_cmd_new = TRUE;
+    }
+    PT_END(pt);
+} // Handle IR thread
+
 
 // === Main  ======================================================
 void main(void) {

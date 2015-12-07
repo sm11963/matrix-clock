@@ -21,7 +21,14 @@ int PT_GetSerialBuffer(struct pt *pt)
         // get the character
         // yield until there is a valid character so that other
         // threads can execute
-        PT_YIELD_UNTIL(pt, UARTReceivedDataIsAvailable(UART2));
+        PT_YIELD_UNTIL(pt, UARTReceivedDataIsAvailable(UART2) || U2STAbits.OERR);
+        
+        if (U2STAbits.OERR) {
+            if (!(U2STA & _U2STA_URXDA_MASK)) {
+                U2STACLR = _U2STA_OERR_MASK;
+            }
+        }
+        
        // while(!UARTReceivedDataIsAvailable(UART2)){};
         character = UARTGetDataByte(UART2);
         //PT_YIELD_UNTIL(pt, UARTTransmitterIsReady(UART2));

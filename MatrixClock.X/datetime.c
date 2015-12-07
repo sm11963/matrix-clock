@@ -109,3 +109,52 @@ unsigned char twentyFour2TwelveHour(unsigned char hour) {
         return hour;
     }
 }
+
+void rtcc_init() {
+    rtccTime tm;
+    rtccDate dt;
+    
+    // Time this code was finalized
+    tm.l=0x00;
+    tm.sec=0x00;                                                                 
+    tm.min=0x15;
+    tm.hour=0x19;
+
+    dt.wday=0x6;
+    dt.mday=0x06;
+    dt.mon=0x12;
+    dt.year=0x15;
+    
+    RtccOpen(tm.l, dt.l, 0);
+}
+
+void setTime(unsigned char hour, unsigned char min, unsigned char sec) {
+    static rtccTime tm;
+    
+    if (hour > 23 || min > 59 || sec > 59) {
+        return;
+    }
+
+    tm.l=0x00;
+    tm.sec=sec;                                                                 
+    tm.min=min;
+    tm.hour=hour;
+    
+    RtccSetTime(decTime2BcdTime(tm).l);
+}
+
+void setDate(unsigned char month, unsigned char mday,
+             unsigned char year, unsigned char wday) {
+    static rtccDate dt;
+
+    if (month > 11 || mday > 31 || year > 99 || wday > 6) {
+        return;
+    }
+    
+    dt.wday=wday;
+    dt.mday=mday;
+    dt.mon=month;
+    dt.year=year;
+    
+    RtccSetDate(decDate2BcdDate(dt).l);
+}

@@ -30,8 +30,6 @@ if __name__ == "__main__":
         exit(1)
 
     ser = serial.Serial(sys.argv[1], 38400)
-    last_sec = -1
-    last_minute = -1
 
     while True:
         cmd = ser.readline().decode().strip()
@@ -41,7 +39,7 @@ if __name__ == "__main__":
             dt = datetime.datetime.today()
             write_time(ser, dt)
 
-            time.sleep(0.020) # wait 20 ms so as to not overload the pic
+            time.sleep(0.050) # wait 50 ms so as to not overload the pic
 
             write_date(ser, dt)
 

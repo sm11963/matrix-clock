@@ -27,5 +27,10 @@ rtccTime decTime2BcdTime(rtccTime tm);
 rtccDate decDate2BcdDate(rtccDate dt);
 unsigned char twentyFour2TwelveHour(unsigned char hour);
 
+// RTCC interface
+void rtcc_init();
+void setTime(unsigned char hour, unsigned char min, unsigned char sec);
+void setDate(unsigned char month, unsigned char mday,
+             unsigned char year, unsigned char wday);
 #endif	/* DATETIME_H */
 
