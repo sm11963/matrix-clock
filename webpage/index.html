@@ -52,11 +52,16 @@
 <!-- end mainnav -->
 <!-- end header -->
 <div id="sectiontitle">
+  <div style="float:left;" id="sectiontitletext">
   <h4><a href="http://people.ece.cornell.edu/land/courses/ece4760/">ECE 4760</a>: <a href="http://people.ece.cornell.edu/land/courses/ece4760/FinalProjects/">Final Project</a></h4>
   <h1>A RGB LED Matrix Clock</h1>
   <h2>with IR Remote and Serial Interface</h2>
   <h3>Sam Miller (<a href="mailto:sgm82@cornell.edu">sgm82<!--REMOVE-->@<!--REMOVE-->cornell.edu</a>)</h3>
   <h3>Craig Andres (<a href="mailto:cra64@cornell.edu">cra64<!--REMOVE-->@<!--REMOVE-->cornell.edu</a>)</h3>
+  </div>
+  <div style="float:right; margin-top: 16px; margin-right: 16px;" id="sectiontitleimage">
+    <img src="./assets/matrix_dtime.jpg" alt="Cornell University" width="150" height="150" border="0">
+  </div>
 </div>
 <div id="wrapper">
 	<div id="content">
@@ -88,14 +93,14 @@
         <h2>Hardware &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
 
         <h3>Hardware Overview</h3>
-		
-		
+
+
 
 
       </div>
       <div class="linklist"> <a name="software"></a>
         <h2>Software &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
-		
+
 		<h3> IR Sensor </h3>
 		<p> To get the remote control working with our project, the idea was to be able to decode pulses sent from the remote, via an IR Receiver that would translate the signal into a digital signal. This digital signal would then be fed into the Microcontroller and decoded accordingly. Fortunately for us, the TSOP38238 IR Receiver Sensor came with a built-in differential OP-Amp, and so it would output the square pulses for us from the beginning. It was also tuned to 38 KHz, which was what our remote transmitted at. </p>
 		<p> The Adafruit Mini Remote Control that we used uses the NEC IR encoding type for transferring the data of which button was pressed. The protocol is relatively straightforward and is explained with stellar detail over <a href="http://techdocs.altium.com/display/FPGA/NEC+Infrared+Transmission+Protocol">at this website</a>. </p>
@@ -112,7 +117,7 @@
 		<p>The red numbers are the decoded versions of the pulses to the right. The 52 corresponds to the Initialization Pulse. There was an anomaly with our remote in which the logical inverse of our address (0x00) was always (0xFC) instead of (0xFF). We worked around this by just ignoring the logical inverse portions of our signal in the final decoding stage.
 Once everything was decoded into 1s and 0s, it was easy to then just check that the incoming address was 0x00, and translate the 8-bit opcode to a string.</p>
 
-		
+
       </div>
       <div class="linklist"> <a name="results"></a>
         <h2>Results &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
