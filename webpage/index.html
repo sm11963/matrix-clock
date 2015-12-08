@@ -100,24 +100,28 @@
             <p>Our project relies heavily on software. One major tradeoff we had to decided between hardware and software was for the time keeping. We ran into an issue with the Pic32 RTCC module running too fast. It ended up being an issue of capacitance affecting the cystal (an affect of working on a breadboard we suspect). However, at that time we decided to try and use the UART serial interface to power all time keeping ability. In other words, a computer with a serial connection would send time updates over UART every second (or faster) in order for our system to update the display. We discovered that this is possible (we managed to get very good accuracy using this method). In the end though, once we fix the oscillator issue, we decided to use the pic32's RTCC unit instead. The benefits of this being that the system is now less coupled to a serial tether to a computer. Relying on software on the computer to send the time updates meant that if you turned off your computer, software on either the computer or the microcontroller failed, or a serial device lost connection the clock would stop telling time. Meanwhile, the computer clock is typically internet synced and always accurate but the major reliability issues spurred us to pick the best of both worlds where the RTCC is used to keep time but it confirms the time with the computer periodically if a serial connection is present.</p>
             <h4>High Level Block Diagram</h4>
             <!-- TODO: Create block diagram just showing the various components (matrix, pic, UART, python application, IR receiver) -->
+            <!-- might be unecessary if we have a good annotated hardware picturein the hardware section -->
+
             <h4>User Interface</h4>
+            <!-- TODO: brief overview of controls, and maybe mention brief overview of how we wanted it to be controlled. -->
+
           </div>
       </div>
       <div class="linklist"> <a name="hardware"></a>
         <h2>Hardware &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
 
         <h3>Hardware Overview</h3>
-        <!-- TODO: image of hardware with labels -->
-        <!-- TODO: image of remotes -->
+        <!-- TODO: image of hardware with labels (image already in assets)-->
+        <!-- TODO: image of remotes (image already in assets) -->
 
         <h4>RGB Matrix</h4>
-        <!-- TODO: Describe table of RGB Matrix connections -->
+        <!-- TODO: Describe table of RGB Matrix connections and briefly what each connection does. Reference adafruit rgb matrix tutorial-->
 
         <h4>IR Sensor</h4>
         <!-- TODO: Describe IR connection, schematic -->
 
         <h4>Serial Connection</h4>
-        <!-- TODO: Describe serial connector we are using -->
+        <!-- TODO: sam Describe serial connector we are using -->
 
         <h4>External Oscillator</h4>
         <!-- TODO: Describe external oscillator -->
@@ -130,19 +134,19 @@
         <!-- TODO: describe overall components. How software is divided up. -->
 
         <h3>Controlling the Matrix</h3>
-        <!-- TODO-->
+        <!-- TODO sam-->
 
         <h4>Matrix Display Library</h4>
-        <!-- TODO-->
+        <!-- TODO sam-->
 
         <h4>Matrix Graphics Library</h4>
-        <!-- TODO-->
+        <!-- TODO sam-->
 
         <h4>Matrix Library Demos</h4>
-        <!-- TODO-->
+        <!-- TODO sam-->
 
         <h4>Clock Graphics</h4>
-        <!-- TODO-->
+        <!-- TODO sam-->
 
         <h3>Handling IR Signals</h3>
         <p> To get the remote control working with our project, the idea was to be able to decode pulses sent from the remote, via an IR Receiver that would translate the signal into a digital signal. This digital signal would then be fed into the Microcontroller and decoded accordingly. Fortunately for us, the TSOP38238 IR Receiver Sensor came with a built-in differential OP-Amp, and so it would output the square pulses for us from the beginning. It was also tuned to 38 KHz, which was what our remote transmitted at. </p>
@@ -161,16 +165,16 @@
     Once everything was decoded into 1s and 0s, it was easy to then just check that the incoming address was 0x00, and translate the 8-bit opcode to a string.</p>
 
         <h3>Realtime Clock and Calender</h3>
-        <!-- TODO: -->
+        <!-- TODO: sam -->
 
         <h3>Serial Interface</h3>
         <!-- TODO: -->
 
         <h3>Python Time-Sync Application</h3>
-        <!-- TODO: -->
+        <!-- TODO: sam -->
 
         <h3>Python Font Converter</h3>
-        <!-- TODO: -->
+        <!-- TODO: sam -->
 
       </div>
       <div class="linklist"> <a name="results"></a>
@@ -190,19 +194,19 @@
         <!-- TODO: discuss brief results -->
 
           <h4>Timing and CPU Usage</h4>
-          <!-- TODO: -->
+          <!-- TODO: sam -->
 
           <h4>Appearance</h4>
-          <!-- TODO: mention interference, tearing and other issues.-->
+          <!-- TODO sam: mention interference, tearing and other issues.-->
 
         <h3>IR Control</h3>
         <!-- TODO: discuss usability and differences between the two remotes. Discuss interfere with other poeoples devices (like the apple remote) and how we use remote addressing to hopefully avoid this. -->
 
         <h3>Serial Interface</h3>
-        <!-- TODO: max rate of control about 10 ms update time & date at 57600 but at 38400 smarter design time every second and date every 20 seconds. -->
+        <!-- TODO sam: max rate of control about 10 ms update time & date at 57600 but at 38400 smarter design time every second and date every 20 seconds. -->
 
         <h3>Realtime Clock and Calender</h3>
-        <!-- TODO: Never measured accuracy of clock directly with a scope. Osciallator was within 1% of required frequency -->
+        <!-- TODO sam: Never measured accuracy of clock directly with a scope. Osciallator was within 1% of required frequency -->
 
       </div>
       <div class="linklist"> <a name="conclusions"></a>
