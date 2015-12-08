@@ -5,7 +5,7 @@ body {
 	font-size: 100%;
 	background: #d7d6d1 url(http://cornelledu.cit.cornell.edu/img/layout/header_bg_thin.gif) repeat-x top left;
 	color: #222;
-	
+
 	margin: 0;
 	padding: 0;
 
@@ -19,23 +19,23 @@ body {
 	width: 740px;
 	height: 105px;
 	margin: 0 auto;
-	
-	/* unhack ie5/win */file://localhost/Users/andy/Downloads/Time%20System/cornell_main.css
+
+	/* unhack ie5/win */
 	text-align: left;
 	}
-	
+
 #wrapper {
-	float: left; 
-	
+	float: left;
+
 	background-color: #f0eee4;
-	width: 100%;	
-	
+	width: 100%;
+
 	text-align: center;
-	
+
 	border-top: 5px solid #b3b3aa;
 	margin-bottom: 10px;
 	}
-	
+
 #content {
 	width: 740px;
 	margin: 0 auto;
@@ -43,7 +43,7 @@ body {
 	/* unhack ie5/win */
 	text-align: left;
 	}
-	
+
 #maincontent {
 	padding-top: 15px;
 	}
@@ -51,7 +51,7 @@ body {
 .leftfloat {
 	float: left;
 	}
-	
+
 .rightfloat {
 	float: right;
 	}
@@ -64,28 +64,28 @@ body {
 	margin: 7px 0 20px 20px;
 	width: 210px;
 	}
-	
+
 .floatingimagewrapperwide {
 	width: 250px;
 	}
-	
+
 .floatingimagewrapper img, .floatingimagewrapperwide img, .floatingimagewrapperxwide img {
 	margin: 0 0 5px 0;
 	}
-	
+
 .floatingimagewrapper .text {
 	margin: 10px;
 	}
-	
+
 #maincontent .floatingimagewrapper .text h4 {
 	line-height: 1.4em;
 	}
-	
+
 #maincontent .floatingimagewrapper .text p {
 	line-height: 1.2em;
 	}
 */
-		
+
 /********** TEXT FORMATTING **********/
 
 .first {
@@ -98,23 +98,23 @@ h2 {
 	color: #000;
 	margin: 20px 0 10px 0;
 	}
-	
+
 #maincontent h2.pagetitle {
 	font-weight: normal;
 	color: #000;
 	margin: 0 0 18px 0;
 	}
-	
+
 #maincontent h2.weathertitle {
 	font-weight: normal;
 	color: #000;
 	margin: 0 0 10px 0;
 	}
-	
+
 #maincontent p.pagetitle {
 	margin: 18px 0;
 	}
-	
+
 h3 {
 	clear: both;
 	font-weight: bold;
@@ -141,7 +141,7 @@ h3 {
 
 #maincontent h3.first {
 	margin-top: 10px;
-	}	
+	}
 
 #maincontent h4 {
 	font-size: 0.75em;
@@ -165,51 +165,51 @@ blockquote {
 	line-height: 1.8em;
 	margin: 15px 0 15px 30px;
 	}
-	
+
 #maincontent blockquote p,
 #maincontent blockquote ol,
 #maincontent blockquote ul {
 	font-size: 100%;
 	}
-	
+
 #maincontent p {
 	font-size: 0.82em;
 	line-height: 1.6em;
 	margin: 5px 0 15px 0;
 	}
-	
+
 #maincontent p.note {
 	color: #999;
 	font-size: 0.65em;
 	line-height: 1.5em;
 	margin: 10px 0;
 	}
-	
+
 #maincontent ul {
 	/* ie5/mac aligns the bullet image much higher than other browsers */
 	list-style-image: url(http://cornelledu.cit.cornell.edu/img/layout/bullet_ie5mac.gif);
-	
+
 	/* \*/
 	list-style-image: url(http://cornelledu.cit.cornell.edu/img/layout/bullet.gif);
 	/* (give other browsers the correctly aligned bullet)  */
-	
+
 	list-style-type: square;
-	margin-bottom: 20px; 
+	margin-bottom: 20px;
 	}
-	
+
 #maincontent ul, #maincontent ol, #factsearch label {
 	font-size: 0.82em;
 	line-height: 1.5em;
-	margin-left: 16px; 
-	padding-left: 0; 
+	margin-left: 16px;
+	padding-left: 0;
 	}
-	
+
 #maincontent ol {
 	margin-left: 30px;
 	}
-	
 
-	
+
+
 #maincontent .download h3 {
 	float: right;
 	clear: none;
@@ -218,13 +218,13 @@ blockquote {
 	line-height: 1.7em;
 	margin: 0;
 	}
-	
+
 #maincontent .download img {
 	float: left;
 	width: 61px;
 	margin-top: 5px;
 	}
-	
+
 #maincontent .download p {
 	float: right;
 	width: 160px;
@@ -232,30 +232,30 @@ blockquote {
 	line-height: 1.5em;
 	margin: 0;
 	}
-	
+
 #maincontent li {
-	margin: 10px 0; 
+	margin: 10px 0;
 	}
-	
+
 #maincontent ul.linkmenu, #maincontent ul.newslist {
 	font-size: 0.69em;
 	margin-left: 0;
 	list-style: none;
 	}
-	
+
 #maincontent .linkmenu li {
 	margin: 7px 0;
 	}
-	
+
 #maincontent .newslist li {
 	margin: 15px 0;
 	}
-		
+
 a, a:link {
 	color: #b31b1b;
-	
+
 	/* prevent ie5/win from seeing border-bottom property */
-	voice-family: "\"}\""; 
+	voice-family: "\"}\"";
   	voice-family:inherit;
 	text-decoration: none;
 	border-bottom: 1px solid #e5cfcf;
@@ -270,20 +270,20 @@ html>a {
 a:visited {
 	border-bottom-color: #e5cfcf;
 	}
-	
+
 a:hover {
 	color: #f00;
 	border-bottom-color: #f00;  /* this crashes IE 6 for some strange reason */
 	}
-	
+
 a:active {
 	color: #b31b1b;
 	}
-	
+
 a.block {
 	border: 0;
 	}
-	
+
 a.img {
 	border: none;
 	}
@@ -291,7 +291,7 @@ a.img {
 strong {
 	font-size: 0.95em;
 	}
-	
+
 #maincontent p.caption {
 	font-size: 0.69em;
 	line-height: 1.5em;
@@ -299,7 +299,7 @@ strong {
 	padding: 0 0 10px 0;
 	margin: 0 10px 0 12px;
 	}
-	
+
 #maincontent p.credit {
 	color: #999;
 	font-size: 0.65em;
@@ -307,7 +307,7 @@ strong {
 	margin: 0;
 	padding: 0 10px 10px 10px;
 	}
-    
+
 #maincontent p.credit_alt {
 	color: #999;
 	font-size: 0.60em;
@@ -315,7 +315,7 @@ strong {
 	margin: 0;
 	padding: 0 10px 5px 10px;
     text-align: right;
-	}    
+	}
 
 dl {
 	margin: 3px 0 20px 0;
@@ -346,18 +346,18 @@ dd {
 /****************************************
  * Cornell Identity
  ****************************************/
-/* 
-	The following set of rules controls the appearance of the topmost 
+/*
+	The following set of rules controls the appearance of the topmost
 	banner on the page, including height, background color, and text color.
 	The Cornell identity banner should appear on every page of the site.
-	
-	The version of the logo that appears in the XHTML code is hidden from 
+
+	The version of the logo that appears in the XHTML code is hidden from
 	browsers that can read this stylesheet, and it is replaced by a version
-	of the logo that corresponds to the background color of the banner. 
+	of the logo that corresponds to the background color of the banner.
 	This logo is placed in the background of two elements below (rather than
-	one) to prevent flickering when moused over by IE/Win users who have 
+	one) to prevent flickering when moused over by IE/Win users who have
 	disabled the browser cache.
-	
+
 	The "Search Cornell" link is aligned with the right edge of the page.
 */
 #cu-identity {
@@ -373,7 +373,7 @@ dd {
 	width: 740px;
 	background: url(http://cornelledu.cit.cornell.edu/img/layout/cu_logo.gif) no-repeat top left;
 	}
-	
+
 #cu-logo a {
 	border: none;
 	display: block;
@@ -382,18 +382,18 @@ dd {
 	background: url(http://cornelledu.cit.cornell.edu/img/layout/cu_logo.gif) no-repeat top left;
 	}
 */
-	
+
 #cu-logo img {
 	/*display: none;
 */	}
-	
-/*	
+
+/*
 	Search Form
 	-------------------------
-	The following rules control the appearance of the search form interface. 
-	The form is displayed in the Cornell banner, and it is aligned with the 
-	right edge of the page. The search form should appear on every page 
-	of a site. 
+	The following rules control the appearance of the search form interface.
+	The form is displayed in the Cornell banner, and it is aligned with the
+	right edge of the page. The search form should appear on every page
+	of a site.
 */
 
 #search-form {
@@ -404,17 +404,17 @@ dd {
 	width: 300px;
 	font-size: 63.125%;
 	}
-	
+
 #search-form form {
 	margin: 0;
 	padding: 0;
 	text-align: right;
 	}
-	
+
 #search-form label {
 	color: #fff;
 	}
-	
+
 #search-form-query {
 	padding: 3px;
 	width: 130px;
@@ -426,7 +426,7 @@ dd {
 	background: #990f0f url(http://cornelledu.cit.cornell.edu/img/layout/header_search.gif) no-repeat top left;
 	vertical-align: middle;
 	}
-	
+
 #search-form-submit {
 	padding: 0px 2px 3px 2px;;
 	border-top: 1px solid #bf6060;
@@ -440,7 +440,7 @@ dd {
 	background: #900;
 	vertical-align: middle;
 	}
-	
+
 #search-filters {
 	margin: 5px 0 0 0;
 	}
@@ -454,12 +454,12 @@ dd {
 	vertical-align: middle;
 	margin: 0 10px 0 0;
 	}
-	
+
 #search-form a {
 	color: #fff;
 	border-bottom: 1px solid #ce7f7f;
 	}
-	
+
 #search-form a:hover {
 	border-bottom: 1px solid #fff;
 	}
@@ -477,51 +477,51 @@ dd {
 	background-repeat: no-repeat;
 	background-position: 50% 22px;
 	}
-	
+
 #mainnav ul {
 	list-style: none;
 	margin: 0;
 	padding: 0;
 	}
-	
+
 #mainnav li {
 	float: left;
 	}
-	
+
 #mainnav a {
 	display: block;
-	
+
 	font-size: 0.75em;
 	font-weight: bold;
 	color: #fff;
 	text-decoration: none;
-	text-align: center;	
-	
+	text-align: center;
+
 	padding-top: 8px;
 	height: 23px;
 	border: none;
-	
+
 	/* ie5/win box model hack */
 	height: 38px;
-	voice-family: "\"}\""; 
+	voice-family: "\"}\"";
   	voice-family:inherit;
   	height: 23px;
 	}
-	
+
 /* unhack ie5/win */
 #mainnav>ul a {
 	height: 23px;
 	}
-	
+
 #mainnav a:hover {
 	background: url(http://cornelledu.cit.cornell.edu/img/layout/nav_hover_bg_3.gif) repeat-x top left;
 	}
-    
+
 #mainnav a#selected {
 	background: url(http://cornelledu.cit.cornell.edu/img/layout/nav_selected.gif) repeat-x top left;
-	}      
-	
-/* these widths make the nav bar plus outside padding total 740px 
+	}
+
+/* these widths make the nav bar plus outside padding total 740px
 .admissionslink {
 	width: 117px;
 	}
@@ -548,9 +548,9 @@ dd {
 
 .alumnilink {
 	width: 85px;
-	}	
+	}
 */
-	
+
 /* these widths make the nav bar text line up with the edges of the page */
 .admissionslink {
 	width: 122px;
@@ -578,8 +578,8 @@ dd {
 
 .alumnilink {
 	width: 92px;
-	}	
-	
+	}
+
 
 
 /********** SECTION TITLE **********/
@@ -601,15 +601,15 @@ dd {
 	height: 122px;
 	margin: 0 auto;
 	padding: 0;
-	
+
 	//cutout image
 	background-repeat: no-repeat;
 	background-position: 0 -8px;
-	
+
 	//unhack ie5/win
 	text-align: left;
 	}
-	
+
 #sectiontitle a {
 	color: #73736c;
 	text-decoration: none;
@@ -625,7 +625,7 @@ dd {
 	border-bottom: 1px solid #e7e7e7;
 	margin-top: 5px;
 	}
-	
+
 #maincontent th {
 	border: 0;
 	padding: 0 10px 5px 10px;
@@ -634,7 +634,7 @@ dd {
 	color: #888;
 	text-align: left;
 	}
-	
+
 #maincontent td {
 	border: 0;
 	padding: 10px 10px 12px 10px;
@@ -650,11 +650,11 @@ dd {
 #maincontent td.number, #maincontent th.number {
 	text-align: right;
 	}
-	
+
 #maincontent td.major, #maincontent td.degree {
 	font-weight: bold;
 	}
-	
+
 #maincontent table h3 {
 	margin: 0;
 	font-size: 1em;
@@ -671,29 +671,29 @@ dd {
 	margin: 0 7px 0 -5px;
 	background-image: url(http://cornelledu.cit.cornell.edu/img/layout/shadow_tn_75.gif);
 	}
-	
+
 .spotlight-main {
 	float: right;
 	margin: 0 0 9px 0;
 	width: 148px;
 	}
-	
+
 #maincontent .spotlight h4 {
 	margin: 0 0 5px 0;
 	}
-	
+
 .spotlight-title {
 	margin: 0 0 3px 0;
 	font-size: 0.82em;
 	line-height: 1.4em;
 	}
-	
+
 .spotlight-shortdesc {
 	font-size: 0.69em;
 	line-height: 1.4em;
 	color: #666;
 	}
-	
+
 /********** ALERT BOX **********/
 
 #alert {
@@ -703,13 +703,13 @@ dd {
 	margin: 5px 0 20px 0;
 	padding: 15px 15px 15px 15px;
 	}
-	
+
 #alert p {
 	margin: 0;
 	padding: 0;
 	line-height: 1.5em;
 	}
-	
+
 /********** DOUBLE-SECTION (TWO COLUMNS) **********/
 
 .double {
@@ -721,33 +721,33 @@ dd {
 	width: 100%;
 	background: url(http://cornelledu.cit.cornell.edu/img/layout/rule_vert.gif) top center repeat-y;
 	}
-	
+
 .double .group1 {
 	float: left;
 	width: 240px;
 	}
-	
+
 .double .group2 {
 	float: right;
 	width: 240px;
 	}
-	
+
 #maincontent .double h2 {
 	margin-top: 0;
 	}
-	
+
 .double .more {
 	clear: both;
 	}
-	
+
 .double .banner {
 	/* hide thumbnail rules from ie5/win */
-	voice-family: "\"}\""; 
+	voice-family: "\"}\"";
   	voice-family:inherit;
 	background: url(http://cornelledu.cit.cornell.edu/img/layout/shadow_wide_240.gif) no-repeat top left;
 	margin: -6px -9px 0 -6px;
 	padding: 6px 9px 9px 6px;	}
-	
+
 /* unhack ie5/win */
 .double>.group1 .banner, .double>.group2 .banner {
 	background: url(http://cornelledu.cit.cornell.edu/img/layout/shadow_wide_240.gif) no-repeat top left;
@@ -785,7 +785,7 @@ dd {
 	width: 600px;
 	list-style: none;
 	}
-	
+
 #footer li  {
 	float: left;
 	border-left: 1px solid #acacac;
@@ -794,7 +794,7 @@ dd {
 	font-size: 0.65em;
 	line-height: 1.3em;
 	}
-	
+
 #footer li.first  {
 	border-left: none;
 	padding-left: 0;
@@ -812,50 +812,50 @@ dd {
 	width: 140px;
 	}
 */
-	
+
 #printlink {
 	/*
 	border-right: 1px solid #bdbdbd;
 	padding-right: 15px;
 	*/
 	}
-	
+
 #printlink a, #printlink img {
 	vertical-align: top;
 	}
-	
+
 #copyright {
 	margin-top: 6px;
     margin-top: 9px;
 	}
-	
+
 
 
 #footer a, #footer a:link, #footer a:visited {
 	border-bottom-color: #ccadad;
 	}
-	
+
 #footer a:hover {
 	border-bottom-color: #f00;
 	}
-	
+
 #footer a:active {
 	border-bottom-color: #bf0000;
 	}
-	
+
 /********** FORM **********/
 
 form {
 	margin: 0;
 	padding: 0;
 	}
-	
+
 #maincontent form {
 	float: right;
 	width: 100%;
 	border-top: 1px solid #ddd;
 	}
-	
+
 fieldset {
 	margin: 0;
 	border: 0;
@@ -867,13 +867,13 @@ fieldset {
 	width: 100%;
 	padding: 10px 0;
 	}
-	
+
 .formpair {
 	float: left;
 	width: 480px;
 	margin: 5px 0 0 0;
 	}
-	
+
 .formlabel {
 	float: left;
 	font-size: 0.82em;
@@ -884,22 +884,22 @@ fieldset {
 	width: 145px;
 	margin-right: 15px;
 	}
-	
+
 .forminput, .forminputhead {
 	float: right;
 	width: 320px;
 	}
-	
+
 .forminput {
 	font-size: 0.82em;
 	line-height: 20px;
 	margin-bottom: 5px;
 	}
-	
+
 .forminputhead {
 	margin: 5px 0;
 	}
-	
+
 .formsubmit {
 	float: left;
 	width: 100%;
@@ -914,57 +914,57 @@ fieldset {
 	font-size: 0.87em;
 	color: #888;
 	margin: 0 0 15px 0;
-	
+
 	/* ie5/win wraps the text if the width isn't specified */
 	width: 480px;
 	}
-	
+
 #maincontent form ul.checklist {
 	margin: 0;
 	padding: 0;
 	list-style: none;
 	font-size: 100%;
 	}
-	
+
 #maincontent form ul.checklist li {
 	position: relative;
 	left: 25px;
 	margin: 5px 0;
 	padding: 0;
-	
+
 	/* ie/mac doesn't indent */
 	padding-left: 25px;
 	/* \*/
 	padding-left: 0;
 	/* unhack ie/mac */
 	}
-	
+
 textarea {
 	width: 280px;
 	}
-	
+
 .formsubmit input {
 	margin-right: 10px;
 	}
-	
+
 .inputsubmit {
 	font-size: 0.69em;
 	font-weight: bold;
 	color: #333;
-	
+
 	padding: 2px 5px;
 	}
-	
+
 .error {
 	font-weight: bold;
 	color: #f00;
 	}
-	
+
 .formconfirmation {
 	font-weight: bold;
 	color: #090;
 	}
-	
+
 /* prevent long pull-downs from sticking out */
 select.longselect {
 	width: 320px;
@@ -1015,24 +1015,24 @@ select.longselect {
 	border-right: 1px solid #ccc;
 	padding-right: 10px;
 	}
-	
-	
+
+
 /********** ANNOUNCEMENTS **********/
 
 #announcements h3 {
 	margin: 5px 0 0 0;
 	}
-	
+
 #announcements p.date {
 	font-size: 0.69em;
 	color: #999;
 	margin: 0;
 	}
-	
+
 #announcements p.more {
 	margin-top: -15px;
 	}
-	
+
 /********** WEBRING **********/
 
 #webring {
@@ -1043,30 +1043,30 @@ select.longselect {
 	color: #ccc;
 	padding: 0 5px;
 	}
-	
+
 #prev a {
 	padding-left: 10px;
-	
+
 	/* hack ie5/win, which puts the arrows behind the text */
-	voice-family: "\"}\""; 
+	voice-family: "\"}\"";
 	voice-family:inherit;
 	background: url(http://cornelledu.cit.cornell.edu/img/layout/arrows/left_red.gif) no-repeat center left;
 	}
 
 #next a {
 	padding-right: 10px;
-	
+
 	/* hack ie5/win, which puts the arrows behind the text */
-	voice-family: "\"}\""; 
+	voice-family: "\"}\"";
 	voice-family:inherit;
 	background: url(http://cornelledu.cit.cornell.edu/img/layout/arrows/right_red.gif) no-repeat center right;
 	}
-	
+
 /* unhack ie5/win */
 #prev>a { background: url(http://cornelledu.cit.cornell.edu/img/layout/arrows/left_red.gif) no-repeat center left; }
 #next>a { background: url(http://cornelledu.cit.cornell.edu/img/layout/arrows/right_red.gif) no-repeat center right; }
-	
-	
+
+
 /********** CONTACT **********/
 
 .address dt, .address dd {
@@ -1088,7 +1088,7 @@ select.longselect {
 ul.otp {
 	border-bottom: 1px solid #ddd;
 	}
-	
+
 .thumbnail {
 	padding: 6px 9px 9px 6px;
 	background: url(http://cornelledu.cit.cornell.edu/img/layout/shadow_tn.gif) no-repeat top left;
@@ -1121,7 +1121,7 @@ ul.otp {
 	margin: 0 0 15px 0;
 	padding: 0;
 	}
-	
+
 #pullquotefull p.source {
 	margin-bottom: 0;
 	}
@@ -1129,7 +1129,7 @@ ul.otp {
 #skipnav {
 	display: none;
 	}
-	
+
 hr {
 	display: none;
 	}
@@ -1137,19 +1137,19 @@ hr {
 .oddsection, .row1 {
 	background: #fff;
 	}
-	
+
 .evensection, .row2 {
 	background: #fafaf7;
 	}
-	
+
 .evensection, .oddsection, .row1, .row2 {
 	border-bottom: 1px solid #ddd;
 	}
-	
+
 a img {
 	border: 0;
 	}
-	
+
 .calendar {
 	float: left;
 	margin: -5px 10px 0 0;
@@ -1166,7 +1166,7 @@ a img {
 .plugindownloads {
 	padding-top: 10px;
 	}
-	
+
 .more {
 	margin: 15px 0;
 	font-size: 0.69em;
