@@ -85,13 +85,21 @@
             <h2>High Level Design &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
             <h3>Overview</h3>
 
+            <h4>Rationale</h4>
+            <p>The idea for this project arose from the growing popularity of home appliances being both programmable and connected to the internet. As technology continues to evolve and become cheaper, more and more homes and buildings are incorporating these appliances that can be controlled through the internet, such as the Nest home heating unit and the Phillips Hue lighting system. We believe that this LED clock would be a great addition to a home that utilizes internet connected components. The our display could provide a central status hub that reports the status of various other components in the house as well add to a modern technological atmosphere.</p>
+
+            <p>While we did not accomplish the ambitious goal of creating an internet connected centeralized display this semester, we did build a self contained and novel device that works as functional clock. This is the first step in creating a more useful display and as will be discussed later on, hopefully the start of an on going project to add upon this clock that will make it go above and beyond the exciting wall clock.</p>
+
             <h4>Standards</h4>
+            <p>Our project does not (as of this time) utilize RF communications or other regulated technologies, and therefore we could not find any pertinent standards to reference. We had anticipated finding standards for infrared remote technology but again, while we did find some standards used by various companies, we did not find any widely adopted standards that would be relevant to include with our project.</p>
             <h4>Intellectual Property</h4>
             <p>This project can and should be seen as very similar to the many LED Matrix displays. There are tons of creative LED Matrix projects of every kind, however, they are almost all done by hobbists who either do not actively share any code or are completely opensource. Additinally, the vast majority of these hobbyist projects are done using the Arduino or more powerful systems such as a Rasberry Pi or FPGA, the former being very easy to work with and the later being highly performant for larger displays. At the onset of this project we were unable to find any documented projects using both the PIC32 architecture and a 32x32 RGB LED matrix. Everything we have done, excluding the resources refered to below, has been our own invention, inspired by our own interests and our peers' ideas.</p>
             <p>We do utilize three libraries in our codebase written by others. The first is the Cornell <a href="http://people.ece.cornell.edu/land/courses/ece4760/PIC32/index_Protothreads.html">protothreading library</a>. Written by Bruce Land, this library contributes by adding a UART interface and threading system (adapted from the <a href="http://dunkels.com/adam/pt/">protothreads library</a> written by Adam Dunkels). We have also made modifications to this library to suit our appilication. The second library we used is the <a href="https://github.com/adafruit/RGB-matrix-Panel">Adafruit RGB Matrix Panel Library for Arduino</a>. We used this library as a means of testing and reverse engineering the interface for controlling the RGB matrix. Our our control library for the RGB matrix is heavily based on the concepts from the Adafruit library but re-written for the PIC32 architecture. Finally, we also adapted and added to the <a href="https://github.com/adafruit/Adafruit-GFX-Library">Adafruit GFX Library for Arduino</a>. We used an already adapted version of this library (adapted by Syed Tahmid Mahbub and can found at <a href="http://tahmidmc.blogspot.com/">his blog</a>). We adapted it further for the matrix as well as adding additional functions as necessary. All of these libraries are open source and have no restrictions on use provided proper referencing.</p>
 
             <h4>Hardware and Software Tradeoffs</h4>
+            <p>Our project relies heavily on software. One major tradeoff we had to decided between hardware and software was for the time keeping. We ran into an issue with the Pic32 RTCC module running too fast. It ended up being an issue of capacitance affecting the cystal (an affect of working on a breadboard we suspect). However, at that time we decided to try and use the UART serial interface to power all time keeping ability. In other words, a computer with a serial connection would send time updates over UART every second (or faster) in order for our system to update the display. We discovered that this is possible (we managed to get very good accuracy using this method). In the end though, once we fix the oscillator issue, we decided to use the pic32's RTCC unit instead. The benefits of this being that the system is now less coupled to a serial tether to a computer. Relying on software on the computer to send the time updates meant that if you turned off your computer, software on either the computer or the microcontroller failed, or a serial device lost connection the clock would stop telling time. Meanwhile, the computer clock is typically internet synced and always accurate but the major reliability issues spurred us to pick the best of both worlds where the RTCC is used to keep time but it confirms the time with the computer periodically if a serial connection is present.</p>
             <h4>High Level Block Diagram</h4>
+            <!-- TODO: Create block diagram just showing the various components (matrix, pic, UART, python application, IR receiver) -->
             <h4>User Interface</h4>
           </div>
       </div>
@@ -99,51 +107,127 @@
         <h2>Hardware &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
 
         <h3>Hardware Overview</h3>
+        <!-- TODO: image of hardware with labels -->
+        <!-- TODO: image of remotes -->
 
+        <h4>RGB Matrix</h4>
+        <!-- TODO: Describe table of RGB Matrix connections -->
 
+        <h4>IR Sensor</h4>
+        <!-- TODO: Describe IR connection, schematic -->
 
+        <h4>Serial Connection</h4>
+        <!-- TODO: Describe serial connector we are using -->
+
+        <h4>External Oscillator</h4>
+        <!-- TODO: Describe external oscillator -->
 
       </div>
       <div class="linklist"> <a name="software"></a>
         <h2>Software &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
 
-		<h3> IR Sensor </h3>
-		<p> To get the remote control working with our project, the idea was to be able to decode pulses sent from the remote, via an IR Receiver that would translate the signal into a digital signal. This digital signal would then be fed into the Microcontroller and decoded accordingly. Fortunately for us, the TSOP38238 IR Receiver Sensor came with a built-in differential OP-Amp, and so it would output the square pulses for us from the beginning. It was also tuned to 38 KHz, which was what our remote transmitted at. </p>
-		<p> The Adafruit Mini Remote Control that we used uses the NEC IR encoding type for transferring the data of which button was pressed. The protocol is relatively straightforward and is explained with stellar detail over <a href="http://techdocs.altium.com/display/FPGA/NEC+Infrared+Transmission+Protocol">at this website</a>. </p>
-		<p> The difficult part for us, was figuring out the optimal way of decoding these incoming pulses on the Microcontroller in a way that wouldn’t interfere with the large CPU demand of the LED Matrix code. Adafruit graciously included an Adrino tutorial on how they decoded their inputs <a href="https://learn.adafruit.com/ir-sensor"> here.</a> However, this tutorial wasn’t A) optimized for our PIC32, and B) ran the entire code within a loop that would interfere with our LED Matrix code.</p>
-		<p> To this end, we decided to utilize the same ideas we used in the Lab 1 Capacitance Meter. We would make an ISR that would trigger pulse captures, and then when we were certain that an entire pulse was captured, we would decode it. To do this, we had to utilize an Input Capture on RB13 of the PIC32. The setup for this was just as it was in Lab 1, except we trigger the timer capture on every single edge (rising and falling), because for the initialization pulse, we need both the high and the low widths. Once I had captured all the pulse times, I would then store them in an array for decoding. The following image is from the beginning stages of my work with this. Basically, the values you see in the column marked “LOW” are the timer counts for when the signal pulse was low, “HIGH” when it was high. I had set the timer with a prescalar of 64 on a 40 MHz clock, so each count corresponds to about 1.6e-6 seconds. This is the raw timer counts data, and after messing around with it for a while, I determined the following threshold values for various pulses:</p>
-		<img src="assets/ir_test.jpg" alt="IR Pulse Counts on TFT" height="420" width="280">
-		<ul>
-			<li>Initialization Pulse: HIGH 5550 – 5850 counts followed by LOW 2650 – 2950 counts</li>
-			<li>Repeat Pulse: HIGH 5550 - 5850 counts followed by LOW 1250 – 1550 counts</li>
-			<li>Logical 0 Pulse: After Initialization Pulse, LOW 200 – 500 counts</li>
-			<li>Logical 1 Pulse: After Initialization Pulse, LOW 900 – 1200 counts</li>
-		</ul>
-		<p>These thresholds are much higher than probably what is needed, but it helps to allow for a large variation in the case of signal interference, especially whenever you use the remote from a distance.</p>
-		<p>The red numbers are the decoded versions of the pulses to the right. The 52 corresponds to the Initialization Pulse. There was an anomaly with our remote in which the logical inverse of our address (0x00) was always (0xFC) instead of (0xFF). We worked around this by just ignoring the logical inverse portions of our signal in the final decoding stage.
-Once everything was decoded into 1s and 0s, it was easy to then just check that the incoming address was 0x00, and translate the 8-bit opcode to a string.</p>
+        <h3>Overview</h3>
+        <!-- TODO: describe overall components. How software is divided up. -->
 
+        <h3>Controlling the Matrix</h3>
+        <!-- TODO-->
+
+        <h4>Matrix Display Library</h4>
+        <!-- TODO-->
+
+        <h4>Matrix Graphics Library</h4>
+        <!-- TODO-->
+
+        <h4>Matrix Library Demos</h4>
+        <!-- TODO-->
+
+        <h4>Clock Graphics</h4>
+        <!-- TODO-->
+
+        <h3>Handling IR Signals</h3>
+        <p> To get the remote control working with our project, the idea was to be able to decode pulses sent from the remote, via an IR Receiver that would translate the signal into a digital signal. This digital signal would then be fed into the Microcontroller and decoded accordingly. Fortunately for us, the TSOP38238 IR Receiver Sensor came with a built-in differential OP-Amp, and so it would output the square pulses for us from the beginning. It was also tuned to 38 KHz, which was what our remote transmitted at. </p>
+        <p> The Adafruit Mini Remote Control that we used uses the NEC IR encoding type for transferring the data of which button was pressed. The protocol is relatively straightforward and is explained with stellar detail over <a href="http://techdocs.altium.com/display/FPGA/NEC+Infrared+Transmission+Protocol">at this website</a>. </p>
+        <p> The difficult part for us, was figuring out the optimal way of decoding these incoming pulses on the Microcontroller in a way that wouldn’t interfere with the large CPU demand of the LED Matrix code. Adafruit graciously included an Arduino tutorial on how they decoded their inputs <a href="https://learn.adafruit.com/ir-sensor"> here.</a> However, this tutorial wasn’t A) optimized for our PIC32, and B) ran the entire code within a loop that would interfere with our LED Matrix code.</p>
+        <p> To this end, we decided to utilize the same ideas we used in the Lab 1 Capacitance Meter. We would make an ISR that would trigger pulse captures, and then when we were certain that an entire pulse was captured, we would decode it. To do this, we had to utilize an Input Capture on RB13 of the PIC32. The setup for this was just as it was in Lab 1, except we trigger the timer capture on every single edge (rising and falling), because for the initialization pulse, we need both the high and the low widths. Once I had captured all the pulse times, I would then store them in an array for decoding. The following image is from the beginning stages of my work with this. Basically, the values you see in the column marked “LOW” are the timer counts for when the signal pulse was low, “HIGH” when it was high. I had set the timer with a prescalar of 64 on a 40 MHz clock, so each count corresponds to about 1.6e-6 seconds. This is the raw timer counts data, and after messing around with it for a while, I determined the following threshold values for various pulses:</p>
+        <img src="assets/ir_test.jpg" alt="IR Pulse Counts on TFT" height="420" width="280">
+        <ul>
+          <li>Initialization Pulse: HIGH 5550 – 5850 counts followed by LOW 2650 – 2950 counts</li>
+          <li>Repeat Pulse: HIGH 5550 - 5850 counts followed by LOW 1250 – 1550 counts</li>
+          <li>Logical 0 Pulse: After Initialization Pulse, LOW 200 – 500 counts</li>
+          <li>Logical 1 Pulse: After Initialization Pulse, LOW 900 – 1200 counts</li>
+        </ul>
+        <p>These thresholds are much higher than probably what is needed, but it helps to allow for a large variation in the case of signal interference, especially whenever you use the remote from a distance.</p>
+        <p>The red numbers are the decoded versions of the pulses to the right. The 52 corresponds to the Initialization Pulse. There was an anomaly with our remote in which the logical inverse of our address (0x00) was always (0xFC) instead of (0xFF). We worked around this by just ignoring the logical inverse portions of our signal in the final decoding stage.
+    Once everything was decoded into 1s and 0s, it was easy to then just check that the incoming address was 0x00, and translate the 8-bit opcode to a string.</p>
+
+        <h3>Realtime Clock and Calender</h3>
+        <!-- TODO: -->
+
+        <h3>Serial Interface</h3>
+        <!-- TODO: -->
+
+        <h3>Python Time-Sync Application</h3>
+        <!-- TODO: -->
+
+        <h3>Python Font Converter</h3>
+        <!-- TODO: -->
 
       </div>
       <div class="linklist"> <a name="results"></a>
         <h2>Results &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
+        <div class="image">
+          <img src="./assets/matrix_dtime.jpg" alt="RGB LED Matrix showing digital clock display." width=350 height=350>
+          <img src="./assets/matrix_onwall.jpg" alt="RGB LED Matrix hanging on wall showing analog clock display." width=350 height=350>
+          <p class="caption"><strong>Left:</strong> The RGB LED Matrix displaying the digital clock face. <strong>Right:</strong> Example of RGB LED Matrix hanging on a wall displaying the analog clock as it might be used.</p>
+        </div>
+        <div class="image">
+          <img src="./assets/matrix_colorwheel.jpg" alt="" width=350px height=350px>
+          <img src="./assets/matrix_colorlevels.jpg" alt="" width=350px height=350px>
+          <p class="caption"><strong>Left:</strong> The Matrix displaying a colorwheel demo (from referenced Adafruit library). <strong>Right:</strong> The Matrix displaying a demo of the 16 color intensities for each of the red, green, and blue LEDs.</p>
+        </div>
+
+        <h3>Matrix Display</h3>
+        <!-- TODO: discuss brief results -->
+
+          <h4>Timing and CPU Usage</h4>
+          <!-- TODO: -->
+
+          <h4>Appearance</h4>
+          <!-- TODO: mention interference, tearing and other issues.-->
+
+        <h3>IR Control</h3>
+        <!-- TODO: discuss usability and differences between the two remotes. Discuss interfere with other poeoples devices (like the apple remote) and how we use remote addressing to hopefully avoid this. -->
+
+        <h3>Serial Interface</h3>
+        <!-- TODO: max rate of control about 10 ms update time & date at 57600 but at 38400 smarter design time every second and date every 20 seconds. -->
+
+        <h3>Realtime Clock and Calender</h3>
+        <!-- TODO: Never measured accuracy of clock directly with a scope. Osciallator was within 1% of required frequency -->
 
       </div>
       <div class="linklist"> <a name="conclusions"></a>
         <h2>Conclusions &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
 
         <h3>Summary</h3>
+        <!-- TODO: did it meet our expectations/goals? Satisfied with result.-->
 
-        <h3>Ethical Considerations</h3>
+        <h4>Applicable Standards</h4>
+        <!-- TODO: -->
 
-        <h3>Safety and Usability</h3>
-        <h3>Legal Considerations and the FCC</h3>
+        <h4>Intellectual Property Considerations</h4>
+        <!-- TODO: -->
+
+        <h4>Ethical Considerations</h4>
+        <!-- TODO: -->
+
+        <h4>Legal Considerations</h4>
+        <!-- TODO: -->
 
       </div>
       <div class="linklist"> <a name="appendices"></a>
         <h2>Appendices &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
         <h3>A. Parts List and Costs</h3>
-         <table width="100%" border="1">
+        <table width="100%" border="1">
           <thead>
             <tr>
               <th><strong>Part</strong></th>
@@ -237,52 +321,44 @@ Once everything was decoded into 1s and 0s, it was easy to then just check that 
               <td></td>
               <td><strong>$99.49</strong></td>
             </tr>
-            </tbody>
-            </table>
-            <p></p>
-            <p></p>
-            <p></p>
+          </tbody>
+        </table>
 
-        </p><h3>B. Source Code</h3>
-        <p>Feel free to puruse, comment on, and fork our <a href="https://github.com/sm11963/matrix-clock">GitHub Repository</a>.</p>
+        <h3>B. Source Code</h3>
+        <p>Please browse, comment, and fork the code at our <a href="https://github.com/sm11963/matrix-clock">GitHub Repository</a>.</p>
 
-        <h3>C. Division of Labor</h3>
+        <h3>C. Schematics</h3>
+        <!-- TODO: craig please add schematics here with captions so we can refer to them -->
+
+        <h3>D. Division of Labor</h3>
+        <!-- TODO: -->
 
       </div>
       <div class="linklist"> <a name="references"></a>
         <h2>References &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
-        <p style="margin: 0 0 0.5em">This section provides links to external reference documents, code, and websites used throughout the project.</p>
+        <p style="margin: 0 0 0.5em">The following lists (to the best of our ability) all the websites and resources that provided us with the information that made this project possible.</p>
         <div class="group1">
           <h3>Datasheets</h3>
+          <!-- TODO: oscillator, IR, remote?, pic32 -->
           <ul>
             <li><a href="datasheet.pdf">An example datasheet</a></li>
           </ul>
-          <h3>References</h3>
-          <ul>
-            <li><a href="https://github.com/adafruit/RGB-matrix-Panel">Adafruit RGB Matrix Arduino Library</a></li>
-            <li><a href="http://adafruit.com">Example Referecne</a></li>
-          </ul>
         </div>
         <div class="group2">
-          <h3>Vendors</h3>
+          <h3>References</h3>
+          <!-- TODO: adafruit IR, adafruit graphics, cornell PT threads, cornell TFT, adafruit RGB matrix -->
           <ul>
-            <li><a href="http://www.sparkfun.com/">SparkFun Electronics</a></li>
-          </ul>
-          <h3>Background Info</h3>
-          <ul>
-            <li><a href="http://www.example.com/">Example</a></li>
-
+            <li><a href="https://github.com/adafruit/RGB-matrix-Panel">Adafruit RGB Matrix Arduino Library</a></li>
           </ul>
         </div>
       </div>
 
-
       <div class="linklist"> <a name="ack"></a>
-
         <h2>Acknowledgements &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
 
-        <p>We thank Professor Bruce Land for teaching a wonderful class at Cornell University, the lab TAs for making the class possible, and everyone else involved in making the ECE 4760 course a reality.</p>
-        <p>We would like to thank Udit Gupta for providing us with a spare oscillator unit aiding our troubles with using the onboard RTCC unit.</p>
+        <p>First and foremost, we thank Professor Bruce Land for teaching such an amazing class at Cornell University.</p>
+        <p>We thank the lab TAs for making the class possible (especially Shiva for our lab section) and everyone else involved in making the ECE 4760 course a reality.</p>
+        <p>We would also like to thank Udit Gupta for providing us with his own spare oscillator unit -- solving our troubles with using the onboard Pic32 RTCC module.</p>
       </div>
     </div><!-- end maincontent -->
   </div><!-- end content -->
