@@ -88,7 +88,32 @@
         <h2>Hardware &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
 
         <h3>Hardware Overview</h3>
-		
+		<p> The only serious circuitry for this project was the oscillator circuit, which managed the Real-Time clock for timekeeping. The schematic for this circuit is below, with all the pins connected to the PIC32MX250F128B relevant to it.</p>
+		<img src="assets/oscillator_schematic.png" alt="Oscillator Schematic" height="400" width="400">
+		<p> The IR circuit was also relatively simple, requiring only the TSOP38238 IR Receiver Sensor and a 330 Ohm resistor to protect the PIC32 in case of a surge.</p>
+		<p> All other Pin connections to the MCU are specified here in the table below. </p>
+		<table style="width:100%">
+			<tr>
+				<td>Device</td>
+				<td>Pin(s)</td> 
+				<td>MCU Pin(s)</td>
+				<td>Function</td>
+			</tr>
+			<tr>
+				<td>IR Reciever</td>
+				<td>SIGNAL OUT</td> 
+				<td>13</td>
+				<td>????</td>
+			</tr>
+			<tr>
+				<td>32.768 kHz Oscillator</td>
+				<td>SIGNAL OUT</td>
+				<td>11</td>
+				<td>SOSCI</td>
+			</tr>
+			<tr>
+				<td>
+		</table>
 		
 
 
