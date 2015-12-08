@@ -1,42 +1,42 @@
 
 
 /********** GENERAL FORMATTING **********/
-	
+
 #maincontent {
 	padding-top: 0;
 	}
-	
+
 .hub {
 	float: left;
 	width: 740px;
-	
-	/* 
+
+	/*
 	this lines up the edge of the thumbnail with the edge of the page.
 	otherwise, the edge of the dropshadow lines up with the edge of the page.
 	margin-left: -6px;
 	*/
 
-	/* 
+	/*
 	hack ie/win
 	without this margin-right, ie/win pushes the page to the left
 	margin-right: -20px;
 	*/
 }
 
-	
+
 /********** INTRO BLURB **********/
 
 #introblurb {
 	margin: 15px 0 0 0;
 	padding-bottom: 5px;
 	}
-	
+
 #introblurb p {
 	font-size: 0.75em;
 	line-height: 1.6em;
 	margin: 0 0 10px 0;
 	}
-	
+
 #pullquote {
 	margin-bottom: 0;
 	}
@@ -59,7 +59,7 @@
 #maincontent .linklist ul {
 	margin-bottom: 15px;
 	}
-	
+
 
 /********** FEATURE **********/
 
@@ -71,7 +71,7 @@
 #maincontent dl ul.featurelinks  ul {
 	margin-top: 5px;
 	}
-	
+
 #maincontent .featurelinks li {
 	clear: both;
 	margin: 0 0 8px 0;
@@ -94,7 +94,7 @@
 	float: left;
 	width: 100px;
 	}
-	
+
 #maincontent ul#newslist h4 {
 	float: right;
 	font-weight: normal;
@@ -132,7 +132,7 @@
 	width: 700px;
 	margin: 5px 0 0 0;
 	}
-	
+
 #eventsadvanced div.formlabel {
 	width: 260px;
 	}
@@ -140,11 +140,11 @@
 #eventsadvanced div.forminput {
 	width: 420px;
 	}
-	
+
 #maincontent #eventsadvanced ul.checklist {
 	width: 380px;
 	}
-	
+
 #maincontent #eventsadvanced ul.checklist li {
 	padding-left: 0;
 	}
@@ -161,7 +161,7 @@
 	width: 700px;
 	margin: 5px 0 0 0;
 	}
-	
+
 .groupfull div.formlabel {
 	width: 260px;
 	}
@@ -169,7 +169,7 @@
 .groupfull div.forminput {
 	width: 420px;
 	}
-	
+
 .group1 {
 	float: left;
 	width: 355px;
@@ -185,7 +185,7 @@
 	width: 100%;
 	/*border-top: 5px solid #ddd;  c7c7be */
 	padding-top: 0;
-	
+
 	/* AOL9/OSX needs it, but it breaks IE5/mac \*/
 	clear: both;
 	/* stop hiding from IE5/mac */
@@ -199,7 +199,7 @@
 	margin: 20px 0 20px 0;
 	padding: 8px 12px;
 	}
-	
+
 #maincontent h2.pagetitle {
 	font-family: verdana, arial, helvetica, sans-serif;
 	background: none;
@@ -209,7 +209,7 @@
 	color: #000;
 	margin: 20px 0;
 	}
-	
+
  #maincontent .linklist ul {
 	font-size: 0.75em;
 	margin-bottom: 10px;
@@ -286,10 +286,10 @@ a.imagefloat {
 #maincontent img {
 	border: 0;
 	}
-	
+
 #maincontent .linklist .group2 a.icons {
-	border-bottom-width: 0px; 
-	}	
+	border-bottom-width: 0px;
+	}
 
 /********** CATEGORIES **********/
 
@@ -307,7 +307,7 @@ a.imagefloat {
 .category li {
 	margin: 0 0 10px 0;
 	}
-	
+
 /********** THUMBNAIL LIST **********/
 
 ul#tnlist {
@@ -317,7 +317,7 @@ ul#tnlist {
 	margin: 0;
 	padding: 0;
 	}
-	
+
 #tnlist li {
 	float: left;
 	width: 344px;
@@ -326,17 +326,17 @@ ul#tnlist {
 	margin: 0;
 	margin-bottom: 10px;
 	}
-	
+
 #tnlist li.last {
 	border-bottom: none;
 	}
-	
+
 #tnlist h3 {
 	float: right;
 	clear: none;
 	font-size: 0.75em;
 	font-weight: bold;
-	
+
 	width: 225px;
 	margin:  3px 0 5px 0;
 	padding: 0;
@@ -348,7 +348,7 @@ ul#tnlist {
 	font-size: 0.75em;
 	line-height: 1.5em;
 	font-weight: normal;
-	
+
 	width: 225px;
 	margin: 0;
 	padding: 0;
@@ -358,15 +358,15 @@ ul#tnlist {
 	float: left;
 	margin-left: -6px;
 	}
-	
+
 #tnlist .thumbnail {
 	/*  display: block; */		/* remove padding from ie/win */
 	border: 0;
-	
+
 	/* hide border-bottom in ie5/mac */
 	border-bottom: 1px solid #f0eee4;
 	}
-	
+
 /********** MORE INFORMATION BOX **********/
 
 #moreinfo {
@@ -376,55 +376,55 @@ ul#tnlist {
 	border: 1px solid #ddd;
 	margin: 5px 0 20px 0;
 	padding: 15px 15px 15px 15px;
-	
+
 	/* ie5/win box model hack */
 	width: 740px;
-	voice-family: "\"}\""; 
+	voice-family: "\"}\"";
   	voice-family:inherit;
 	width: 710px;
 	}
-	
+
 /* unhack ie5/win */
 #maincontent>#moreinfo {
 	width: 710px;
 	}
-	
+
 #moreinfo h4 {
 	float: left;
 	width: 170px;
 	margin: 0;
 	padding: 0;
 	}
-	
+
 #moreinfo ul {
 	float: left;
 	font-size: 0.69em;
 	margin: 0;
 	margin-right: 45px;
 	padding: 0;
-	
+
 	/* ie5/mac needs a width so the <ul>s stack horizontally */
 	width: 135px;
-	
+
 	/* unhack ie5/mac \*/
 	width: auto;
 	/* */
-	
+
 	/* ie5/mac aligns the bullet image much higher than other browsers */
 	list-style-image: url(http://cornelledu.cit.cornell.edu/img/layout/bullet_ie5mac.gif);
-	
+
 	/* \*/
 	list-style-image: url(http://cornelledu.cit.cornell.edu/img/layout/bullet.gif);
 	/* (give other browsers the correctly aligned bullet)  */
-	
+
 	list-style-type: square;
 	}
-	
+
 #moreinfo li {
 	margin: 0 0 5px 0;
 	padding: 0;
 	}
-	
+
 #moreinfo p {
 	margin: 0;
 	padding: 0;

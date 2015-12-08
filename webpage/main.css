@@ -12,7 +12,7 @@
 	display: block;
 	width: 340px;
 	height: 75px;
-	background: url(../img/cu_logo.gif) no-repeat top left;
+	background: url(./assets/cu_logo.gif) no-repeat top left;
 }
 
 #mainnav a {
@@ -20,7 +20,7 @@
 }
 
 #sectiontitle, #mainnav {
-	background-image: url(./assets/layout/banner.jpg);
+	background-image: url(./assets/banner.jpg);
 }
 
 #sectiontitle {
