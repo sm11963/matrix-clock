@@ -93,12 +93,11 @@
 
             <h4>Standards</h4>
             <p>Our project does not (as of this time) utilize RF communications or other regulated technologies, and therefore we could not find any pertinent standards to reference. We had anticipated finding standards for infrared remote technology but again, while we did find some standards used by various companies, we did not find any widely adopted standards that would be relevant to include with our project.</p>
-            <h4>Intellectual Property</h4>
-            <p>This project can and should be seen as very similar to the many LED Matrix displays. There are tons of creative LED Matrix projects of every kind, however, they are almost all done by hobbists who either do not actively share any code or are completely opensource. Additinally, the vast majority of these hobbyist projects are done using the Arduino or more powerful systems such as a Rasberry Pi or FPGA, the former being very easy to work with and the later being highly performant for larger displays. At the onset of this project we were unable to find any documented projects using both the PIC32 architecture and a 32x32 RGB LED matrix. Everything we have done, excluding the resources refered to below, has been our own invention, inspired by our own interests and our peers' ideas.</p>
-            <p>We do utilize three libraries in our codebase written by others. The first is the Cornell <a href="http://people.ece.cornell.edu/land/courses/ece4760/PIC32/index_Protothreads.html">protothreading library</a>. Written by Bruce Land, this library contributes by adding a UART interface and threading system (adapted from the <a href="http://dunkels.com/adam/pt/">protothreads library</a> written by Adam Dunkels). We have also made modifications to this library to suit our appilication. The second library we used is the <a href="https://github.com/adafruit/RGB-matrix-Panel">Adafruit RGB Matrix Panel Library for Arduino</a>. We used this library as a means of testing and reverse engineering the interface for controlling the RGB matrix. Our our control library for the RGB matrix is heavily based on the concepts from the Adafruit library but re-written for the PIC32 architecture. Finally, we also adapted and added to the <a href="https://github.com/adafruit/Adafruit-GFX-Library">Adafruit GFX Library for Arduino</a>. We used an already adapted version of this library (adapted by Syed Tahmid Mahbub and can found at <a href="http://tahmidmc.blogspot.com/">his blog</a>). We adapted it further for the matrix as well as adding additional functions as necessary. All of these libraries are open source and have no restrictions on use provided proper referencing.</p>
+            <h4>Relation to Existing Works</h4>
+            <p>This project can and should be seen as very similar to the many LED Matrix displays. There are tons of creative LED Matrix projects of every kind, however, they are almost all done by hobbyists who either do not actively share any code or are completely opensource. Additionally, the vast majority of these hobbyist projects are done using the Arduino or more powerful systems such as a Raspberry Pi or FPGA, the former being very easy to work with and the later being highly performant for larger displays. At the onset of this project we were unable to find any documented projects using both the PIC32 architecture and a 32x32 RGB LED matrix. Everything we have done, excluding the resources referred to below, has been our own invention, inspired by our own interests and our peers' ideas.</p>
 
-            <h4>Hardware and Software Tradeoffs</h4>
-            <p>Our project relies heavily on software. One major tradeoff we had to decided between hardware and software was for the time keeping. We ran into an issue with the Pic32 RTCC module running too fast. It ended up being an issue of capacitance affecting the cystal (an affect of working on a breadboard we suspect). However, at that time we decided to try and use the UART serial interface to power all time keeping ability. In other words, a computer with a serial connection would send time updates over UART every second (or faster) in order for our system to update the display. We discovered that this is possible (we managed to get very good accuracy using this method). In the end though, once we fix the oscillator issue, we decided to use the pic32's RTCC unit instead. The benefits of this being that the system is now less coupled to a serial tether to a computer. Relying on software on the computer to send the time updates meant that if you turned off your computer, software on either the computer or the microcontroller failed, or a serial device lost connection the clock would stop telling time. Meanwhile, the computer clock is typically internet synced and always accurate but the major reliability issues spurred us to pick the best of both worlds where the RTCC is used to keep time but it confirms the time with the computer periodically if a serial connection is present.</p>
+            <h4>Hardware and Software Trade-offs</h4>
+            <p>Our project relies heavily on software. One major trade-off we had to decided between hardware and software was for the time keeping. We ran into an issue with the Pic32 RTCC module running too fast. It ended up being an issue of capacitance affecting the crystal (an affect of working on a breadboard we suspect). However, at that time we decided to try and use the UART serial interface to power all time keeping ability. In other words, a computer with a serial connection would send time updates over UART every second (or faster) in order for our system to update the display. We discovered that this is possible (we managed to get very good accuracy using this method). In the end though, once we fix the oscillator issue, we decided to use the pic32's RTCC unit instead. The benefits of this being that the system is now less coupled to a serial tether to a computer. Relying on software on the computer to send the time updates meant that if you turned off your computer, software on either the computer or the microcontroller failed, or a serial device lost connection the clock would stop telling time. Meanwhile, the computer clock is typically internet synced and always accurate but the major reliability issues spurred us to pick the best of both worlds where the RTCC is used to keep time but it confirms the time with the computer periodically if a serial connection is present.</p>
             <h4>High Level Block Diagram</h4>
             <!-- TODO: Create block diagram just showing the various components (matrix, pic, UART, python application, IR receiver) -->
             <!-- might be unecessary if we have a good annotated hardware picturein the hardware section -->
@@ -117,7 +116,7 @@
 
     <div class="image">
       <a href="./assets/matrix_hardware_annotated.png"><img src="./assets/matrix_hardware_annotated.png" width=720/></a>
-      <p class="caption">Back side of the matrix clock showing the various highlighted hardware commonents. <strong>Green</strong> The Microstick II housing the PIC32 microprocessor. <strong>Red</strong> The solderboard circuit for the realtime clock oscillator. <strong>Magenta</strong> The connection for the RGB LED matrix display. <strong>Yellow</strong>The serial to usb adaptor.<strong>Cyan</strong>The IR receiver mounted to be visible from the front of the matrix.</p>
+      <p class="caption">Back side of the matrix clock showing the various highlighted hardware components. <strong>Green</strong> The Microstick II housing the PIC32 microprocessor. <strong>Red</strong> The solderboard circuit for the realtime clock oscillator. <strong>Magenta</strong> The connection for the RGB LED matrix display. <strong>Yellow</strong> The serial to usb adaptor. <strong>Cyan</strong> The IR receiver mounted to be visible from the front of the matrix.</p>
     </div>
 
 		<p> The only major circuitry added for this project was the oscillator circuit, which managed the Real-Time clock for timekeeping. The schematic for this circuit is below, with all the pins connected to the PIC32MX250F128B relevant to it.</p>
@@ -166,16 +165,41 @@
         <h2>Software &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
 
         <h3>Overview</h3>
-        <!-- TODO: describe overall components. How software is divided up. -->
+
+        <p>The software is the largest part of our project and is almost more of a deliverable than the device itself. We spent a large amount of time creating a standalone library for the LED Matrix display as well as making the project as well broken into logical components as possible. The idea is that anyone can fork our <a href="https://github.com/sm11963/matrix-clock">GitHub Repository</a> and easily start customizing the system as they see fit. Towards that goal it was heavy priority to make the project as clean as possible and modular so that in order to changing the use of any component (display being drawn, serial use, rtcc use, IR input, or other) is very simple.</p>
+        <!-- TODO: finish up and describe overall components. How software is divided up. -->
 
         <h3>Controlling the Matrix</h3>
-        <!-- TODO sam-->
+        <p>The most challenging part of this project was developing the control library for the <a href="https://www.adafruit.com/products/2026">Adafruit 32x32 RGB LED matrix</a>. The matrix itself does not come with any datasheets or product guides indicating how to control it. Fortunately, there are several helpful guides for how to use this matrix with the Arduino from <a href="">Sparkfun</a> and <a href="https://learn.adafruit.com/32x16-32x32-rgb-led-matrix/overview">Adafruit</a> as well as a description of the findings of what was found when the hardware was reverse engineered <a href="http://www.rayslogic.com/propeller/Programming/AdafruitRGB/AdafruitRGB.htm">on this page</a>. Additionally, there is an <a href="https://github.com/adafruit/RGB-matrix-Panel">Arduino library</a> written for this matrix. Even with all of these resources it was a challenge to get the display working well.</p>
 
         <h4>Matrix Display Library</h4>
-        <!-- TODO sam-->
+
+        <p>The first step in porting the Adafruit arduino library for the PIC32 was figuring out exactly what the library does to drive the display. We did this by hooking up and Arduino an playing with the scope to see what the Arduino was outputting to the matrix. Thankfully the library also includes helpful comments to aid in understanding the reasoning behind much of the code. This is vitally necessary since much of the code is highly optimized in order for the many matrix control wires to be output at a fast enough rate to achieve acceptable visual quality and reduced CPU usage. In the code base this is all part of <a href="https://github.com/sm11963/matrix-clock/blob/master/MatrixClock.X/rgb_matrix.c">rgb_matrix.c/h</a>.</p>
+        <p>Here I will give a brief overview of the LED Matrix control interface and the control library. Better documentation can likely be found at the resources above focused on this topic. The LED matrix has a five part interface:</p>
+        <ul>
+          <li><strong>6 wire channel for writing two RGB LED values at a time </strong>- you can only write on or off for each of the red, green, blue values at each pixel</li>
+          <li><strong>4 wire row selection </strong>- only two rows are on at a time these bits select which rows, the binary value 0 would turn on 0 and 16, 1 would be 1 and 17, etc.</li>
+          <li><strong>A clock signal</strong> - indicates that the color values should be latched for the next pixel</li>
+          <li><strong>A latch signal</strong> - indicates that we are done writing the selected row and the values should be latched and displayed</li>
+          <li><strong>A output enable signal </strong>- indicates that the currently selected row should be on</li>
+        </ul>
+
+        <p>Now if you wanted to write data to display colors on only two rows of leds (0 and 16) here would be steps:</p>
+        <ol>
+          <li>Set the color channels for the colors you want for the first pixel (column) 0 (so channel one would be the pixel (0,0) and channel two would set pixel (0,16).</li>
+          <li>Set the clock signal momentarily then clear, latching that color values.</li>
+          <li>Repeat 1 &amp; 2 for each column from 0 to 31.</li>
+          <li>Set the latch signal and the output enable high. This will latch the new RGB values to the led controllers and disable the output.</li>
+          <li>Clear the latch and the output. This will re-enable the output with the new color values displayed.</li>
+        </ol>
+
+        <p>In order to get a wider color range (12 bit in this case) and display flicker free frames, the process of writing values to the matrix must be done on an accurate schedule as fast as possible. This means interrupts and a timer must be used to drive the display. In order to get 12-bit color from just setting LEDs on or off we use <a href="http://www.batsocks.co.uk/readme/art_bcm_1.htm">Binary Code Modulation</a>. So since we are doing the entire matrix update in an interrupt to achieve precise timing for binary coded modulation this means we have to be as quick as possible so that the CPU is not always updating the matrix and has time for other tasks such as actually drawing what to display. So to accomplish a very fast ISR there are some tricks that are used. The first is arranging the matrix buffer so that we can read a memory value and immediately write it to an output port without having to manipulate bits first. The second is to make use of the SET/CLEAR/TOGGLE registers for all of the PIC32 control registers which allow us to modify bits in ports without first reading them to maintain the other bit values. Unfortunately, this means there is some inflexibility in the control library such the control pins are mapped to indices in the matrix buffer and with the current scheme you can only use the pins that are setup for it. In further iterations, macros might be used in order to allow some flexibility in the pins chosen for the matrix color control Finally, we ensure that loop unrolling and optimizations are on so that the loops to write to the array are as efficient as possible and this was verified in disassembly. More about the actual timing considerations is discussed in the results section.</p>
+
+        <p>With an ISR to write the values stored in a matrix buffer, we can now write values to this buffer and the matrix will display those values stored in the buffer. But since this buffer is being read very fast by the ISR and might not be updated quickly by the main program, you will actually see individual pixels change on the display as they are written by software. This affect is undesirable and to remedy it we use two display buffers. One called the back buffer and one called the forward buffer. We always write to the back buffer and read the current pixels to display from the forward buffer. When we want to update the image, we set a flag that is read by the ISR after finishing drawing the full matrix. The ISR swaps the buffers by simply swapping the pointers to them so it now begins drawing the updated buffer. This means that animations can be very smooth.</p>
 
         <h4>Matrix Graphics Library</h4>
-        <!-- TODO sam-->
+        <p>The matrix display library only gives a few functions to write to the matrix, drawPixel and fillScreen. While powerful there is many things that we want to be standard and not have to think about as a programmer using the LED matrix display. Thankfully, there was also a library providing this for the Arduino and since these functions are more high level they were much easier to port over. Additionally, the <a href="http://people.ece.cornell.edu/land/courses/ece4760/PIC32/index_TFT_display.html">ECE4760 TFT display library</a> is actually another port of the Adafruit graphics library to standard C and the PIC32. Therefore after cleaning it up and adding a few additional features we were able to use this library to draw lines, shapes, and text to the display with easy to use functions.</p>
+        <p>One of our additions to the graphic library was a new font class. We needed a smaller font in order to fit more information on the screen. Therefore, we found an <a href="http://robey.lag.net/2010/01/23/tiny-monospace-font.html">opensource 3x5 font class</a> and added it to the library. This required converting a BDF font file into a C data definition to be used by the microcontroller. To accomplish this we wrote a <a href="https://github.com/sm11963/matrix-clock/blob/master/bdf2hex/bdf2hex.py">python script</a> to take in the font definition file, parse it, and write out the hex code values that can be used as a C array definition the bitmap pixels to draw for each character. Additionally, we generalized the printing functionality such that adding new fonts will not be so difficult.</p>
 
         <h4>Matrix Library Demos</h4>
         <!-- TODO sam-->
@@ -211,16 +235,13 @@
         <h3>Python Time-Sync Application</h3>
         <!-- TODO: sam -->
 
-        <h3>Python Font Converter</h3>
-        <!-- TODO: sam -->
-
       </div>
       <div class="linklist"> <a name="results"></a>
         <h2>Results &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
         <div class="image">
           <img src="./assets/matrix_dtime.jpg" alt="RGB LED Matrix showing digital clock display." width=350 height=350>
           <img src="./assets/matrix_onwall.jpg" alt="RGB LED Matrix hanging on wall showing analog clock display." width=350 height=350>
-          <p class="caption"><strong>Left:</strong> The RGB LED Matrix displaying the digital clock face. <strong>Right:</strong> Example of RGB LED Matrix hanging on a wall displaying the analog clock as it might be used.</p>
+          <p class="caption"><strong>Left:</strong> The RGB LED Matrix displaying the digital clock face. <strong>Right:</strong> Example of RGB LED Matrix hanging on a wall displaying the analog clock as it might be used. Note that we have covered the display with simple printer paper in order to reduce the brightness.</p>
         </div>
         <div class="image">
           <img src="./assets/matrix_colorwheel.jpg" alt="" width=350px height=350px>
@@ -257,7 +278,8 @@
         <!-- TODO: -->
 
         <h4>Intellectual Property Considerations</h4>
-        <!-- TODO: -->
+          <p>We do utilize three libraries in our codebase which were written by others. The first is the Cornell <a href="http://people.ece.cornell.edu/land/courses/ece4760/PIC32/index_Protothreads.html">protothreading library</a>. Written by Bruce Land, this library contributes by adding a UART interface and threading system (adapted from the <a href="http://dunkels.com/adam/pt/">protothreads library</a> written by Adam Dunkels). We have also made modifications to this library to suit our appilication. The second library we used is the <a href="https://github.com/adafruit/RGB-matrix-Panel">Adafruit RGB Matrix Panel Library for Arduino</a>. We used this library as a means of testing and reverse engineering the interface for controlling the RGB matrix. Our our control library for the RGB matrix is heavily based on the concepts from the Adafruit library but re-written for the PIC32 architecture. Finally, we also adapted and added to the <a href="https://github.com/adafruit/Adafruit-GFX-Library">Adafruit GFX Library for Arduino</a>. We used an already adapted version of this library (adapted by Syed Tahmid Mahbub and can found at <a href="http://tahmidmc.blogspot.com/">his blog</a>). We adapted it further for the matrix as well as adding additional functions as necessary. All of these libraries are open source and have no restrictions on use provided proper referencing.</p>
+          <p>We also use a bitmap font definition that is available for opensource use under the <a href="https://github.com/sm11963/matrix-clock/blob/master/bdf2hex/LICENSE.txt">MIT license</a> which we have included with our project as required.</p>
 
         <h4>Ethical Considerations</h4>
         <!-- TODO: -->
@@ -375,6 +397,17 @@
         <h3>D. Division of Labor</h3>
         <!-- TODO: -->
 
+        <ul>
+          <li>Sam</li>
+          <ul>
+            <li>TODO</li>
+          </ul>
+          <li>Craig</li>
+          <ul>
+            <li>TODO</li>
+          </ul>
+        </ul>
+
       </div>
       <div class="linklist"> <a name="references"></a>
         <h2>References &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
@@ -391,6 +424,13 @@
           <!-- TODO: adafruit IR, adafruit graphics, cornell PT threads, cornell TFT, adafruit RGB matrix -->
           <ul>
             <li><a href="https://github.com/adafruit/RGB-matrix-Panel">Adafruit RGB Matrix Arduino Library</a></li>
+            <li><a href="https://github.com/adafruit/Adafruit-GFX-Library">Adafruit Graphics Arduino Library</a></li>
+            <li><a href="https://learn.adafruit.com/32x16-32x32-rgb-led-matrix/overview">Adafruit LED Matrix Tutorial</a></li>
+            <li><a href="https://learn.sparkfun.com/tutorials/rgb-panel-hookup-guide">Sparkfun LED Matrix Tutorial</a></li>
+            <li><a href="https://learn.adafruit.com/32x16-32x32-rgb-led-matrix/overview">Adafruit LED Matrix Tutorial</a></li>
+            <li><a href="http://people.ece.cornell.edu/land/courses/ece4760/PIC32/index_TFT_display.html">Cornell TFT Display Guide and Code</a></li>
+            <li><a href="http://people.ece.cornell.edu/land/courses/ece4760/PIC32/index_Protothreads.html">Cornell Protothread Library</a></li>
+            <li><a href="http://robey.lag.net/2010/01/23/tiny-monospace-font.html">3x5 Bitmap Font</a></li>
           </ul>
         </div>
       </div>
@@ -409,7 +449,7 @@
 <div id="footerwrap">
   <div id="footer">
     <div id="copyright">
-      <div class="copyright">Website template adapted with permission from Sahil Gutpta &amp; Forrest Henderson</div>
+      <div class="copyright">Website template adapted from Sahil Gutpta &amp; Forrest Henderson with permission</div>
       <div class="copyright">Layout &copy;2014 Cornell University</div>
     </div>
   </div>
