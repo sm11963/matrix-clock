@@ -100,14 +100,14 @@
             <h4>Hardware and Software Trade-offs</h4>
             <p>Our project relies heavily on software. One major trade-off we had to decided between hardware and software was for the time keeping. We ran into an issue with the Pic32 RTCC module running too fast. It ended up being an issue of capacitance affecting the crystal (an affect of working on a breadboard we suspect). However, at that time we decided to try and use the UART serial interface to power all time keeping ability. In other words, a computer with a serial connection would send time updates over UART every second (or faster) in order for our system to update the display. We discovered that this is possible (we managed to get very good accuracy using this method). In the end though, once we fix the oscillator issue, we decided to use the pic32's RTCC unit instead. The benefits of this being that the system is now less coupled to a serial tether to a computer. Relying on software on the computer to send the time updates meant that if you turned off your computer, software on either the computer or the microcontroller failed, or a serial device lost connection the clock would stop telling time. Meanwhile, the computer clock is typically internet synced and always accurate but the major reliability issues spurred us to pick the best of both worlds where the RTCC is used to keep time but it confirms the time with the computer periodically if a serial connection is present.</p>
             <h4>High Level Block Diagram</h4>
-			
+
             <p>The block diagram below shows how the various components of our project interact with each other on the highest level. The Python Application handles the syncronization of time with the PC's system time, but all data from the PC is eventually fed back to the PIC32 to be processed.</p>
 			<div class="image">
 				<a href="./assets/high_level.png"><img src="./assets/high_level.png" width="500" height="400"></a>
 			</div>
             <h4>User Interface</h4>
             <p>The user interface for our project consisted of an Adafruit Mini IR Remote, which would control the clock's various functions based upon which button was pressed. Additionally, the serial interface would allow for the time to be manually set via a UART console. As the project stands now, the IR remote controls the toggling between the Digital and Analog views of the clock as well as between each of the various test images seen in the Results section below. Simply press the Left and Right arrow keys to change between the different views.</p>
-			<p>Ideally, we would have used the IR Remote to control a menu interface that would come up on the LED Matrix, but due to time constaints, this feature was not implemented. However, it would be very simple to add on to the current control system just by adding in additional command handlers for the various buttons on the remote. </p>
+			<p>Ideally, we would have used the IR Remote to control a menu interface that would come up on the LED Matrix, but due to time constraints, this feature was not implemented. However, it would be very simple to add on to the current control system just by adding in additional command handlers for the various buttons on the remote. </p>
 
 
           </div>
@@ -204,12 +204,11 @@
           <li><strong>A latch signal</strong> - indicates that we are done writing the selected row and the values should be latched and displayed</li>
           <li><strong>A output enable signal </strong>- indicates that the currently selected row should be on</li>
         </ul>
-
-
+        <p>The pins these connect to on the PIC32 are listed in the table above.
 
         <div class="floatingimagewrapperwide">
           <a href="./assets/remotes.jpg"><img src="./assets/remotes.jpg" width=278/></a>
-          <p class="caption">Two different IR remote controls we used.</p>
+          <p class="caption">These two remotes are what we configured our IR Sensor software to be compatible with. We rejected all other IR remote addresses.</p>
         </div>
 
         <h4>IR Sensor</h4>
@@ -220,12 +219,11 @@
 
 
         <h4>Serial Connection</h4>
-        <p>The serial to usb connector we used was the <a href="https://www.sparkfun.com/products/9716">Sparkfun FTDI Basic Breakout</a>. We use this chip due to its compact size and seperation from a USB cable so that we can use the clock without a serial tether and not have to manage the cable. The TX/RX is connected to the PIC32 microcontroller on pins 22 and 21, respectively with the appropriate PPS configuration selected on the microcontroller.</p>
+        <p>The serial to usb connector we used was the <a href="https://www.sparkfun.com/products/9716">Sparkfun FTDI Basic Breakout</a>. We use this chip due to its compact size and separation from a USB cable so that we can use the clock without a serial tether and not have to manage the cable. The TX/RX is connected to the PIC32 microcontroller on pins 22 and 21, respectively with the appropriate PPS configuration selected on the microcontroller.</p>
 
         <h4>External Oscillator</h4>
 
 		<p>The circuit for the External Oscillator manages the Real-Time clock for timekeeping whenever a connection to the PC is not present. This circuit was graciously donated to us by our classmate Udit Gupta. In short, it creates a 1 second pulse signal, which we use as a clock to handle our second-counting via the input on Pin 11.</p>
-
 
 
       </div>
@@ -243,7 +241,7 @@
 
         <h4>Matrix Display Library</h4>
 
-        <p>The first step in porting the Adafruit arduino library for the PIC32 was figuring out exactly what the library does to drive the display. We did this by hooking up and Arduino an playing with the scope to see what the Arduino was outputting to the matrix. Thankfully the library also includes helpful comments to aid in understanding the reasoning behind much of the code. This is vitally necessary since much of the code is highly optimized in order for the many matrix control wires to be output at a fast enough rate to achieve acceptable visual quality and reduced CPU usage. In the code base this is all part of <a href="https://github.com/sm11963/matrix-clock/blob/master/MatrixClock.X/rgb_matrix.c">rgb_matrix.c/h</a>.</p>
+        <p>The first step in porting the Adafruit Arduino library for the PIC32 was figuring out exactly what the library does to drive the display. We did this by hooking up and Arduino an playing with the scope to see what the Arduino was outputting to the matrix. Thankfully the library also includes helpful comments to aid in understanding the reasoning behind much of the code. This is vitally necessary since much of the code is highly optimized in order for the many matrix control wires to be output at a fast enough rate to achieve acceptable visual quality and reduced CPU usage. In the code base this is all part of <a href="https://github.com/sm11963/matrix-clock/blob/master/MatrixClock.X/rgb_matrix.c">rgb_matrix.c/h</a>.</p>
         <p>Here I will give a brief overview of the LED Matrix control interface and the control library. Better documentation can likely be found at the resources above focused on this topic. Using the wires specified in the hardware section if you wanted to write data to display colors on only two rows of leds (0 and 16) here would be steps:</p>
         <ol>
           <li>Set the color channels for the colors you want for the first pixel (column) 0 (so channel one would be the pixel (0,0) and channel two would set pixel (0,16).</li>
