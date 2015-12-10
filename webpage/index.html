@@ -123,14 +123,7 @@
       <a href="./assets/matrix_hardware_annotated.png"><img src="./assets/matrix_hardware_annotated.png" width=720/></a>
       <p class="caption">Back side of the matrix clock showing the various highlighted hardware components. <strong>Green</strong> The Microstick II housing the PIC32 microprocessor. <strong>Red</strong> The solderboard circuit for the realtime clock oscillator. <strong>Magenta</strong> The connection for the RGB LED matrix display. <strong>Yellow</strong> The serial to usb adaptor. <strong>Cyan</strong> The IR receiver mounted to be visible from the front of the matrix.</p>
     </div>
-	<div class="image">
-		<img src="./assets/remotes.jpg" alt="Remotes" height="300" width="300">
-		<p class="caption">These two remotes are what we configured our IR Sensor software to be compatable with. We rejected all other IR remote addresses.</p>
-	</div>
-		<p> The only major circuitry added for this project was the oscillator circuit, which managed the Real-Time clock for timekeeping. The schematic for this circuit is below, with all the pins connected to the PIC32MX250F128B relevant to it.</p>
-		
-		
-		<p> All other Pin connections to the MCU are specified here in the table below. </p>
+	<p> The circuitry can be broken down into each component used below. The schematics for the circuits can be found in the Schematics Appendex section. All Pin connections to the MCU are specified here in the table below. </p>
 		<table style="width:100%">
 			<tr>
 				<th>Device</th>
@@ -200,7 +193,7 @@
 			</tr>
 		</table>
 
-
+		<br>
         <h4>RGB Matrix</h4>
 
         <p>The RGB LED Matrix has a five part wire interface:</p>
@@ -213,7 +206,6 @@
         </ul>
 
 
-        <p>TODO: craig, add connection table</p>
 
         <div class="floatingimagewrapperwide">
           <a href="./assets/remotes.jpg"><img src="./assets/remotes.jpg" width=278/></a>
@@ -222,11 +214,9 @@
 
         <h4>IR Sensor</h4>
 
-		<p> The IR circuit was also relatively simple, requiring only the TSOP38238 IR Receiver Sensor and a 330 Ohm resistor to protect the PIC32 in case of a surge. The IR reciever simply outputs pulse signals on Pin 13, that we pick up in software as described in the Software section below. Additionally, we made it compatable with the Adafruit Mini IR Remote as well as a standard Apple Slideshow Remote.</p>
-        <div class="image">
-			<a href="./assets/ir_circuit.png"><img src="./assets/ir_circuit.png" alt="Ir Circuit" height="400" width="500"></a>
-			<p class="caption">IR Circuit. The first pin of the TSOP38238 is what outputs the incoming pulses from the remote, and it goes to our MCU. The second and third pins go to ground and 3.3Vdd respectively.</p>
-		</div>
+		<p> The IR circuit was relatively simple, requiring only the TSOP38238 IR Receiver Sensor and a 330 Ohm resistor to protect the PIC32 in case of a surge. The IR reciever simply outputs pulse signals on Pin 13, that we pick up in software as described in the Software section below. Additionally, we made it compatable with the Adafruit Mini IR Remote as well as a standard Apple Slideshow Remote.</p>
+		<p> Having two remotes available to us allowed for some interesting ideas for some two-player games to be made, but we didn't have enough time nor resources to implement this. However, it was great for debugging purposes to have one for each group member!</p>
+
 
 
         <h4>Serial Connection</h4>
@@ -234,11 +224,8 @@
 
         <h4>External Oscillator</h4>
 
-		<p>The circuit for the External Oscillator is below. This manages the Real-Time clock for timekeeping whenever a connection to the PC is not present. This circuit was gaciously donated to us by our classmate Udit Gupta. In short, it creates a 1 second pulse signal, which we use as a clock to handle our second-counting via the input on Pin 11.</p>
-		<div class="image">
-			<a href="./assets/oscillator_schematic.png"><img src="assets/oscillator_schematic.png" alt="Oscillator Schematic" height="400" width="400"></a>
-			<p class="caption">Oscillator Circuit. The 32.768 kHz crystal creates pulses, which we then modify using the RC delays to create a 1 second time period.</p>
-		</div>
+		<p>The circuit for the External Oscillator manages the Real-Time clock for timekeeping whenever a connection to the PC is not present. This circuit was graciously donated to us by our classmate Udit Gupta. In short, it creates a 1 second pulse signal, which we use as a clock to handle our second-counting via the input on Pin 11.</p>
+
 
 
       </div>
@@ -249,8 +236,7 @@
 
         <p>The software is the largest part of our project and is almost more of a deliverable than the device itself. We spent a large amount of time creating a standalone library for the LED Matrix display as well as making the project as well broken into logical components as possible. The idea is that anyone can fork our <a href="https://github.com/sm11963/matrix-clock">GitHub Repository</a> and easily start customizing the system as they see fit. Towards that goal it was heavy priority to make the project as clean as possible and modular so that in order to changing the use of any component (display being drawn, serial use, rtcc use, IR input, or other) is very simple.</p>
 
-        <!-- TODO: finish up and describe overall components. How software is divided up. -->
-        <p>TODO: Craig</p>
+        <p>The software breaks up into the following components: LED Matrix Control Library, IR Signal Decoding/Handling, Realtime Clock and Calendar, Serial Interface with PC, and the Python Time-Sync Application. Each part of the software works in unision with each other in an effiecent manner.</p>
 
         <h3>Controlling the Matrix</h3>
         <p>The most challenging part of this project was developing the control library for the <a href="https://www.adafruit.com/products/2026">Adafruit 32x32 RGB LED matrix</a>. The matrix itself does not come with any datasheets or product guides indicating how to control it. Fortunately, there are several helpful guides for how to use this matrix with the Arduino from <a href="">Sparkfun</a> and <a href="https://learn.adafruit.com/32x16-32x32-rgb-led-matrix/overview">Adafruit</a> as well as a description of the findings of what was found when the hardware was reverse engineered <a href="http://www.rayslogic.com/propeller/Programming/AdafruitRGB/AdafruitRGB.htm">on this page</a>. Additionally, there is an <a href="https://github.com/adafruit/RGB-matrix-Panel">Arduino library</a> written for this matrix. Even with all of these resources it was a challenge to get the display working well.</p>
@@ -301,7 +287,7 @@
         <p>The red numbers are the decoded versions of the pulses to the right. The 52 corresponds to the Initialization Pulse. There was an anomaly with our remote in which the logical inverse of our address (0x00) was always (0xFC) instead of (0xFF). We worked around this by just ignoring the logical inverse portions of our signal in the final decoding stage.
     Once everything was decoded into 1s and 0s, it was easy to then just check that the incoming address was 0x00, and translate the 8-bit opcode to a string.</p>
 
-        <h3>Realtime Clock and Calender</h3>
+        <h3>Realtime Clock and Calendar</h3>
         <p>The realtime clock and calender was very easy to setup after reading through the <a href="http://ww1.microchip.com/downloads/en/DeviceDoc/61125E.pdf">PIC32 documentation</a> and examples online. Using the plib.h functions all that needs to be done is call the corresponding RTCCOpen() function and the RTCC should initialize and be ready to provide the time. Now, this is using a very trivial setup, however. A better application would use a drift correction algorithm to calculate the errors of the 32.768KHz oscillator that drives the realtime clock. This will be discussed further in the results section.</p>
 
         <p>In addition to simply enabling and reading the values directly from the RTCC, we added a set of date/time functions in <a href="https://github.com/sm11963/matrix-clock/blob/master/MatrixClock.X/datetime.c">datetime.c</a> to ease using the dates and converting between the Binary Coded Decimal values provided by the hardware RTCC. This also includes helpers to convert to strings to display dates.</p>
@@ -338,9 +324,10 @@
 
 
         <h3>IR Control</h3>
-        <!-- TODO: discuss usability and differences between the two remotes. Discuss interfere with other poeoples devices (like the apple remote) and how we use remote addressing to hopefully avoid this. -->
-        <p>TODO: Craig</p>
-
+        
+        <p>The IR Controllers worked fantastically as controls for the Matrix. Although we didn't get the menu interface in as we intended to, toggling from one view to another was as simple as a single button press. </p>
+		<p>Using both remotes worked smoothly as expected as well. There were some observed differences between the two remotes that made us consider using one over the other in the future as well. The main observation was that the Adafruit Mini IR Remote was much weaker in its range than the Apple Remote. The Adafruit could only be detected at ranges less than about 5 meters, while the Apple Remote could work at ranges as long as the lab (which is at least 25 meters). However, the Apple Remote encountered some issues with interference with a classmate's MacBook laptop. Whenever buttons on the Apple Remote were pressed, occassionally PowerPoint would open on their computer. We knew that using the Apple Remote had the potential to interface with Apple computers, but usually a "pairing" in neccessary before the laptop will recognize this. The Adafruit Mini Remote did not have any interference issues with any other devices within the lab. Considering these factors, we decided it might be a better idea to only use the Adafruit Remote in the future, as it's low power and non-associtivity with existing devices give it lower chance of causing interference with other devices.</p>
+		<p>The signal interference made an important point when considering which remote to use, which is also why our IR Decoding method always checks the signal address. Both of our remotes used address (0x00). To make sure we didn't decode other group's IR signals, we only would accept signals that transmitted with this data address as its target.</p>
         <h3>Serial Interface</h3>
         <p>The serial interface works wonderfully with the PIC32 after throttling send rates from the computer and checking the error bits. We now only send a character every 2 milliseconds but we only send 11 characters max with the time and 13 characters for the date. This results in a expected delay of about 22 milliseconds minimum for the time (which is more crucial since we are setting a realtime clock). It then may take additional time for the PT library to wake up the serial thread to actually process the message. We found that adding a second to the time before sending to the PIC32 generally improved the accuracy. We believe that determining the average time for the serial thread to process the message would be desirable but might be overkill since we do not require precise timing.</p>
         <p>As an aside, before we got the RTCC on the PIC32 operational, we were able to get the serial interface sending precisely timed updates to the PIC32 to maintain the time very well. This of course has drawbacks of being very coupled to the computer and more failure points but is a good fall back mode.</p>
@@ -353,21 +340,20 @@
         <h2>Conclusions &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
 
         <h3>Summary</h3>
-        <!-- TODO: did it meet our expectations/goals? Satisfied with result.-->
-        <p>TODO: Craig</p>
+        <p>Our project did a lot of what we set out to do, but didn't meet 100% of our goals. We intended to have a menu interface that would be controllable via the IR remote that could be used to set Alarms as well. Other than that, though, all of our goals were met with excellent results. An entire control library for the 32x32 LED Matrix was written, including fonts, animations, and shape drawing. The time was kept in an accurate manner, it syncs with a PC's time, and is displayed in both Analog and Digital fashions. The IR Remote can be used to toggle between various images and the two time displays, with no issues at all. In our opinions, the project met almost everything of what we set out to do, with the groundwork set for much expansion in the future. We are very satisfied with the results, and hope to continue working on this project into the future.</p>
 
         <h4>Applicable Standards</h4>
-        <p>TODO: Craig</p>
+        <p>Our project did not have any standards that applied to it. We personally did not want our IR devices to interfere with others, and so we decided to use the Adafruit Remote over the Apple Remote to nullify this issue.</p>
 
         <h4>Intellectual Property Considerations</h4>
           <p>We do utilize three libraries in our codebase which were written by others. The first is the Cornell <a href="http://people.ece.cornell.edu/land/courses/ece4760/PIC32/index_Protothreads.html">protothreading library</a>. Written by Bruce Land, this library contributes by adding a UART interface and threading system (adapted from the <a href="http://dunkels.com/adam/pt/">protothreads library</a> written by Adam Dunkels). We have also made modifications to this library to suit our appilication. The second library we used is the <a href="https://github.com/adafruit/RGB-matrix-Panel">Adafruit RGB Matrix Panel Library for Arduino</a>. We used this library as a means of testing and reverse engineering the interface for controlling the RGB matrix. Our our control library for the RGB matrix is heavily based on the concepts from the Adafruit library but re-written for the PIC32 architecture. Finally, we also adapted and added to the <a href="https://github.com/adafruit/Adafruit-GFX-Library">Adafruit GFX Library for Arduino</a>. We used an already adapted version of this library (adapted by Syed Tahmid Mahbub and can found at <a href="http://tahmidmc.blogspot.com/">his blog</a>). We adapted it further for the matrix as well as adding additional functions as necessary. All of these libraries are open source and have no restrictions on use provided proper referencing.</p>
           <p>We also use a bitmap font definition that is available for opensource use under the <a href="https://github.com/sm11963/matrix-clock/blob/master/bdf2hex/LICENSE.txt">MIT license</a> which we have included with our project as required.</p>
 
         <h4>Ethical Considerations</h4>
-        <p>TODO: Craig</p>
+        <p>Throughout the entire period in which our project was performed, future and prior, all members of our team strictly followed the IEEE Code of Ethics. All decisions within the group were made with the safety of all members and welfare of the public put firstmost. No conflicts of interest were encounted during our project. All data and measurements stated on this page are truthful to the best of our knowledge. Even though no bribes presented themselves, no bribes were accepted, nor would they would have they been. All efforts in this project were intended to improve our group's understanding of technology, its appropriate application, and potential consequences. Before any movements were taken on the part of the group, thorough research and comprehension was performed to ensure that the project stood within any pertinent limitations. Technical critisim was welcomed and sought by all members in an effort to acknowledge, learn from, and correct errors. Addtionally, all members openly gave technical critism to those who sought it. All outside contributions to this project were properly accredited in the appropriate manner. No person was ever discriminated against for any reason based upon race, religion, gender, disability, age, national origin, sexual orientation, gender identity, or gender expression. No action from any of our members injured anyone, their property, reputation, or employment by false or malicoious action. Lastly, all members assisted colleagues and co-workers in a professional manner to provide helpful development and to support them in following the aforementioned IEEE Code of Ethics. Every possible action was taken to make this project safe, enjoyable, and rewarding for every entitiy involved.</p>
 
         <h4>Legal Considerations</h4>
-        <p>TODO: Craig</p>
+        <p>To our knowledge, our device does not violate any legal regulations. Pulse transmissions from our two Remotes are from commercially avaiable devices, and are within the 38kHz range common with most commerical IR devices. Use of lab equipment was authorized with prior permission from the lab staff. </p>
 
       </div>
       <div class="linklist"> <a name="appendices"></a>
@@ -474,8 +460,82 @@
         <p>Please browse, comment, and fork the code at our <a href="https://github.com/sm11963/matrix-clock">GitHub Repository</a>.</p>
 
         <h3>C. Schematics</h3>
-        <!-- TODO: craig please add schematics here with captions so we can refer to them -->
-        <p>TODO: Craig</p>
+			<table style="width:100%">
+			<tr>
+				<th>Device</th>
+				<th>Pin(s)</th>
+				<th>MCU Pin(s)</th>
+				<th>Function</th>
+			</tr>
+			<tr>
+				<td>IR Reciever</td>
+				<td>SIGNAL OUT</td>
+				<td>13</td>
+				<td>Input Capture 1</td>
+			</tr>
+			<tr>
+				<td>32.768 kHz Oscillator</td>
+				<td>SIGNAL OUT</td>
+				<td>11</td>
+				<td>SOSCI</td>
+			</tr>
+			<tr>
+				<td>LED Matrix</td>
+				<td>R1, G1, B1 (color data)</td>
+				<td>4-6</td>
+				<td>IO</td>
+			</tr>
+			<tr>
+				<td>LED Matrix</td>
+				<td>R2, G2, B2 (color data)</td>
+				<td>16-18</td>
+				<td>IO</td>
+			</tr>
+			<tr>
+				<td>LED Matrix</td>
+				<td>CLK (data clock)</td>
+				<td>2</td>
+				<td>IO</td>
+			</tr>
+			<tr>
+				<td>LED Matrix</td>
+				<td>LAT (data latch)</td>
+				<td>3</td>
+				<td>IO</td>
+			</tr>
+			<tr>
+				<td>LED Matrix</td>
+				<td>OE (output enable)</td>
+				<td>3</td>
+				<td>IO</td>
+			</tr>
+			<tr>
+				<td>LED Matrix</td>
+				<td>A, B, C, D (row select)</td>
+				<td>7, 14, 25, 26</td>
+				<td>IO</td>
+			</tr>
+			<tr>
+				<td>UART</td>
+				<td>TX</td>
+				<td>22</td>
+				<td>UART 2 Recieve</td>
+			</tr>
+			<tr>
+				<td>UART</td>
+				<td>RX</td>
+				<td>21</td>
+				<td>UART 2 Transmit</td>
+			</tr>
+		</table>
+        <div class="image">
+			<a href="./assets/ir_circuit.png"><img src="./assets/ir_circuit.png" alt="Ir Circuit" height="400" width="500"></a>
+			<p class="caption">IR Circuit. The first pin of the TSOP38238 is what outputs the incoming pulses from the remote, and it goes to our MCU. The second and third pins go to ground and 3.3Vdd respectively.</p>
+		</div>
+		<div class="image">
+			<a href="./assets/oscillator_schematic.png"><img src="assets/oscillator_schematic.png" alt="Oscillator Schematic" height="400" width="400"></a>
+			<p class="caption">Oscillator Circuit. The 32.768 kHz crystal creates pulses, which we then modify using the RC delays to create a 1 second time period.</p>
+		</div>
 
         <h3>D. Division of Labor</h3>
 
@@ -484,14 +544,17 @@
           <ul>
             <li>Handled all LED Matrix library rewriting</li>
 			<li>Wrote Control program for LED Matrix</li>
-			<li>Added Oscillator Circuit</li>
-			<li>
+			<li>Wrote all Time-Keeping program functions</li>
           </ul>
           <li>Craig</li>
           <ul>
             <li>Created the IR Circuit</li>
 			<li>Obtained IR opcodes, handled all decoding of incoming IR signals</li>
           </ul>
+		  <li>Both</li>
+			<ul>
+				<li>Created this website</li>
+			</ul>
         </ul>
 
       </div>
@@ -500,14 +563,16 @@
         <p style="margin: 0 0 0.5em">The following lists (to the best of our ability) all the websites and resources that provided us with the information that made this project possible.</p>
         <div class="group1">
           <h3>Datasheets</h3>
-          <!-- TODO: oscillator, IR, remote?, pic32 -->
           <ul>
             <li><a href="http://ww1.microchip.com/downloads/en/DeviceDoc/61125E.pdf">PIC32 RTCC</a></li>
+			<li><a href="https://www.adafruit.com/datasheets/2026datasheet.pdf">32x32 LED Matrix</a></li>
+			<li><a href="https://www.adafruit.com/datasheets/tsop382.pdf">TSOP38238 IR Reciever</a></li>
+			<li><a href="https://www.adafruit.com/images/product-files/2211/2211datasheet.pdf">32.768 kHz Crystal</a></li>
           </ul>
         </div>
         <div class="group2">
           <h3>References</h3>
-          <!-- TODO: adafruit IR, adafruit graphics, cornell PT threads, cornell TFT, adafruit RGB matrix -->
+       
           <ul>
             <li><a href="https://github.com/adafruit/RGB-matrix-Panel">Adafruit RGB Matrix Arduino Library</a></li>
             <li><a href="https://github.com/adafruit/Adafruit-GFX-Library">Adafruit Graphics Arduino Library</a></li>
@@ -518,6 +583,9 @@
             <li><a href="http://people.ece.cornell.edu/land/courses/ece4760/PIC32/index_Protothreads.html">Cornell Protothread Library</a></li>
             <li><a href="http://robey.lag.net/2010/01/23/tiny-monospace-font.html">3x5 Bitmap Font</a></li>
             <li><a href="https://github.com/pyserial/pyserial">PySerial</a></li>
+			<li><a href="https://learn.adafruit.com/ir-sensor">Adafruit IR Sensor Tutorial</a></li>
+			<li><a href="http://techdocs.altium.com/display/FPGA/NEC+Infrared+Transmission+Protocol">NEC Transmission Protocol</a></li>
+			
           </ul>
         </div>
       </div>
