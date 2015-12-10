@@ -86,6 +86,7 @@
             <h3>Overview</h3>
             <p>Our project runs off of a PIC32MX250F128B microcontroller, which handles all the controls and processing of data for the 32x32 LED Matrix. An Oscillator crystal handles the realtime-keeping component of the clock, and an IR reciever handles the input from our IR Remote Controller. We also have a serial connection to a PC so we can update the time to match the internet-regulated standards that most PCs sync with on a daily basis. All of these components come together to create the LED Matrix Clock we have designed, and we will go into more detail on these below.</p>
 
+
             <h4>Rationale</h4>
             <p>The idea for this project arose from the growing popularity of home appliances being both programmable and connected to the internet. As technology continues to evolve and become cheaper, more and more homes and buildings are incorporating these appliances that can be controlled through the internet, such as the Nest home heating unit and the Phillips Hue lighting system. We believe that this LED clock would be a great addition to a home that utilizes internet connected components. The our display could provide a central status hub that reports the status of various other components in the house as well add to a modern technological atmosphere.</p>
 
@@ -99,6 +100,7 @@
             <h4>Hardware and Software Trade-offs</h4>
             <p>Our project relies heavily on software. One major trade-off we had to decided between hardware and software was for the time keeping. We ran into an issue with the Pic32 RTCC module running too fast. It ended up being an issue of capacitance affecting the crystal (an affect of working on a breadboard we suspect). However, at that time we decided to try and use the UART serial interface to power all time keeping ability. In other words, a computer with a serial connection would send time updates over UART every second (or faster) in order for our system to update the display. We discovered that this is possible (we managed to get very good accuracy using this method). In the end though, once we fix the oscillator issue, we decided to use the pic32's RTCC unit instead. The benefits of this being that the system is now less coupled to a serial tether to a computer. Relying on software on the computer to send the time updates meant that if you turned off your computer, software on either the computer or the microcontroller failed, or a serial device lost connection the clock would stop telling time. Meanwhile, the computer clock is typically internet synced and always accurate but the major reliability issues spurred us to pick the best of both worlds where the RTCC is used to keep time but it confirms the time with the computer periodically if a serial connection is present.</p>
             <h4>High Level Block Diagram</h4>
+			
             <p>The block diagram below shows how the various components of our project interact with each other on the highest level. The Python Application handles the syncronization of time with the PC's system time, but all data from the PC is eventually fed back to the PIC32 to be processed.</p>
 			<div class="image">
 				<a href="./assets/high_level.png"><img src="./assets/high_level.png" width="500" height="400"></a>
@@ -106,6 +108,7 @@
             <h4>User Interface</h4>
             <p>The user interface for our project consisted of an Adafruit Mini IR Remote, which would control the clock's various functions based upon which button was pressed. Additionally, the serial interface would allow for the time to be manually set via a UART console. As the project stands now, the IR remote controls the toggling between the Digital and Analog views of the clock as well as between each of the various test images seen in the Results section below. Simply press the Left and Right arrow keys to change between the different views.</p>
 			<p>Ideally, we would have used the IR Remote to control a menu interface that would come up on the LED Matrix, but due to time constaints, this feature was not implemented. However, it would be very simple to add on to the current control system just by adding in additional command handlers for the various buttons on the remote. </p>
+
 
           </div>
       </div>
@@ -197,44 +200,10 @@
 			</tr>
 		</table>
 
-        <!-- TODO: image of remotes (image already in assets) -->
 
         <h4>RGB Matrix</h4>
-        <!-- TODO: Describe table of RGB Matrix connections and briefly what each connection does. Reference adafruit rgb matrix tutorial-->
 
-        <h4>IR Sensor</h4>
-		<p> The IR circuit was also relatively simple, requiring only the TSOP38238 IR Receiver Sensor and a 330 Ohm resistor to protect the PIC32 in case of a surge. The IR reciever simply outputs pulse signals on Pin 13, that we pick up in software as described in the Software section below. Additionally, we made it compatable with the Adafruit Mini IR Remote as well as a standard Apple Slideshow Remote.</p>
-        <div class="image">
-			<a href="./assets/ir_circuit.png"><img src="./assets/ir_circuit.png" alt="Ir Circuit" height="400" width="500"></a>
-			<p class="caption">IR Circuit. The first pin of the TSOP38238 is what outputs the incoming pulses from the remote, and it goes to our MCU. The second and third pins go to ground and 3.3Vdd respectively.</p>
-		</div>
-
-        <h4>Serial Connection</h4>
-        <p>The serial to usb connector we used was the <a href="https://www.sparkfun.com/products/9716">Sparkfun FTDI Basic Breakout</a>. We use this chip due to its compact size and seperation from a USB cable so that we can use the clock without a serial tether and not have to manage the cable. The TX/RX is connected to the PIC32 microcontroller on pins 22 and 21, respectively with the appropriate PPS configuration selected on the microcontroller.</p>
-
-        <h4>External Oscillator</h4>
-		<p>The circuit for the External Oscillator is below. This manages the Real-Time clock for timekeeping whenever a connection to the PC is not present. This circuit was gaciously donated to us by our classmate Udit Gupta. In short, it creates a 1 second pulse signal, which we use as a clock to handle our second-counting via the input on Pin 11.</p>
-		<div class="image">
-			<a href="./assets/oscillator_schematic.png"><img src="assets/oscillator_schematic.png" alt="Oscillator Schematic" height="400" width="400"></a>
-			<p class="caption">Oscillator Circuit. The 32.768 kHz crystal creates pulses, which we then modify using the RC delays to create a 1 second time period.</p>
-		</div>
-
-      </div>
-      <div class="linklist"> <a name="software"></a>
-        <h2>Software &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
-
-        <h3>Overview</h3>
-
-        <p>The software is the largest part of our project and is almost more of a deliverable than the device itself. We spent a large amount of time creating a standalone library for the LED Matrix display as well as making the project as well broken into logical components as possible. The idea is that anyone can fork our <a href="https://github.com/sm11963/matrix-clock">GitHub Repository</a> and easily start customizing the system as they see fit. Towards that goal it was heavy priority to make the project as clean as possible and modular so that in order to changing the use of any component (display being drawn, serial use, rtcc use, IR input, or other) is very simple.</p>
-        <!-- TODO: finish up and describe overall components. How software is divided up. -->
-
-        <h3>Controlling the Matrix</h3>
-        <p>The most challenging part of this project was developing the control library for the <a href="https://www.adafruit.com/products/2026">Adafruit 32x32 RGB LED matrix</a>. The matrix itself does not come with any datasheets or product guides indicating how to control it. Fortunately, there are several helpful guides for how to use this matrix with the Arduino from <a href="">Sparkfun</a> and <a href="https://learn.adafruit.com/32x16-32x32-rgb-led-matrix/overview">Adafruit</a> as well as a description of the findings of what was found when the hardware was reverse engineered <a href="http://www.rayslogic.com/propeller/Programming/AdafruitRGB/AdafruitRGB.htm">on this page</a>. Additionally, there is an <a href="https://github.com/adafruit/RGB-matrix-Panel">Arduino library</a> written for this matrix. Even with all of these resources it was a challenge to get the display working well.</p>
-
-        <h4>Matrix Display Library</h4>
-
-        <p>The first step in porting the Adafruit arduino library for the PIC32 was figuring out exactly what the library does to drive the display. We did this by hooking up and Arduino an playing with the scope to see what the Arduino was outputting to the matrix. Thankfully the library also includes helpful comments to aid in understanding the reasoning behind much of the code. This is vitally necessary since much of the code is highly optimized in order for the many matrix control wires to be output at a fast enough rate to achieve acceptable visual quality and reduced CPU usage. In the code base this is all part of <a href="https://github.com/sm11963/matrix-clock/blob/master/MatrixClock.X/rgb_matrix.c">rgb_matrix.c/h</a>.</p>
-        <p>Here I will give a brief overview of the LED Matrix control interface and the control library. Better documentation can likely be found at the resources above focused on this topic. The LED matrix has a five part interface:</p>
+        <p>The RGB LED Matrix has a five part wire interface:</p>
         <ul>
           <li><strong>6 wire channel for writing two RGB LED values at a time </strong>- you can only write on or off for each of the red, green, blue values at each pixel</li>
           <li><strong>4 wire row selection </strong>- only two rows are on at a time these bits select which rows, the binary value 0 would turn on 0 and 16, 1 would be 1 and 17, etc.</li>
@@ -243,7 +212,53 @@
           <li><strong>A output enable signal </strong>- indicates that the currently selected row should be on</li>
         </ul>
 
-        <p>Now if you wanted to write data to display colors on only two rows of leds (0 and 16) here would be steps:</p>
+
+        <p>TODO: craig, add connection table</p>
+
+        <div class="floatingimagewrapperwide">
+          <a href="./assets/remotes.jpg"><img src="./assets/remotes.jpg" width=278/></a>
+          <p class="caption">Two different IR remote controls we used.</p>
+        </div>
+
+        <h4>IR Sensor</h4>
+
+		<p> The IR circuit was also relatively simple, requiring only the TSOP38238 IR Receiver Sensor and a 330 Ohm resistor to protect the PIC32 in case of a surge. The IR reciever simply outputs pulse signals on Pin 13, that we pick up in software as described in the Software section below. Additionally, we made it compatable with the Adafruit Mini IR Remote as well as a standard Apple Slideshow Remote.</p>
+        <div class="image">
+			<a href="./assets/ir_circuit.png"><img src="./assets/ir_circuit.png" alt="Ir Circuit" height="400" width="500"></a>
+			<p class="caption">IR Circuit. The first pin of the TSOP38238 is what outputs the incoming pulses from the remote, and it goes to our MCU. The second and third pins go to ground and 3.3Vdd respectively.</p>
+		</div>
+
+
+        <h4>Serial Connection</h4>
+        <p>The serial to usb connector we used was the <a href="https://www.sparkfun.com/products/9716">Sparkfun FTDI Basic Breakout</a>. We use this chip due to its compact size and seperation from a USB cable so that we can use the clock without a serial tether and not have to manage the cable. The TX/RX is connected to the PIC32 microcontroller on pins 22 and 21, respectively with the appropriate PPS configuration selected on the microcontroller.</p>
+
+        <h4>External Oscillator</h4>
+
+		<p>The circuit for the External Oscillator is below. This manages the Real-Time clock for timekeeping whenever a connection to the PC is not present. This circuit was gaciously donated to us by our classmate Udit Gupta. In short, it creates a 1 second pulse signal, which we use as a clock to handle our second-counting via the input on Pin 11.</p>
+		<div class="image">
+			<a href="./assets/oscillator_schematic.png"><img src="assets/oscillator_schematic.png" alt="Oscillator Schematic" height="400" width="400"></a>
+			<p class="caption">Oscillator Circuit. The 32.768 kHz crystal creates pulses, which we then modify using the RC delays to create a 1 second time period.</p>
+		</div>
+
+
+      </div>
+      <div class="linklist"> <a name="software"></a>
+        <h2>Software &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
+
+        <h3>Overview</h3>
+
+        <p>The software is the largest part of our project and is almost more of a deliverable than the device itself. We spent a large amount of time creating a standalone library for the LED Matrix display as well as making the project as well broken into logical components as possible. The idea is that anyone can fork our <a href="https://github.com/sm11963/matrix-clock">GitHub Repository</a> and easily start customizing the system as they see fit. Towards that goal it was heavy priority to make the project as clean as possible and modular so that in order to changing the use of any component (display being drawn, serial use, rtcc use, IR input, or other) is very simple.</p>
+
+        <!-- TODO: finish up and describe overall components. How software is divided up. -->
+        <p>TODO: Craig</p>
+
+        <h3>Controlling the Matrix</h3>
+        <p>The most challenging part of this project was developing the control library for the <a href="https://www.adafruit.com/products/2026">Adafruit 32x32 RGB LED matrix</a>. The matrix itself does not come with any datasheets or product guides indicating how to control it. Fortunately, there are several helpful guides for how to use this matrix with the Arduino from <a href="">Sparkfun</a> and <a href="https://learn.adafruit.com/32x16-32x32-rgb-led-matrix/overview">Adafruit</a> as well as a description of the findings of what was found when the hardware was reverse engineered <a href="http://www.rayslogic.com/propeller/Programming/AdafruitRGB/AdafruitRGB.htm">on this page</a>. Additionally, there is an <a href="https://github.com/adafruit/RGB-matrix-Panel">Arduino library</a> written for this matrix. Even with all of these resources it was a challenge to get the display working well.</p>
+
+        <h4>Matrix Display Library</h4>
+
+        <p>The first step in porting the Adafruit arduino library for the PIC32 was figuring out exactly what the library does to drive the display. We did this by hooking up and Arduino an playing with the scope to see what the Arduino was outputting to the matrix. Thankfully the library also includes helpful comments to aid in understanding the reasoning behind much of the code. This is vitally necessary since much of the code is highly optimized in order for the many matrix control wires to be output at a fast enough rate to achieve acceptable visual quality and reduced CPU usage. In the code base this is all part of <a href="https://github.com/sm11963/matrix-clock/blob/master/MatrixClock.X/rgb_matrix.c">rgb_matrix.c/h</a>.</p>
+        <p>Here I will give a brief overview of the LED Matrix control interface and the control library. Better documentation can likely be found at the resources above focused on this topic. Using the wires specified in the hardware section if you wanted to write data to display colors on only two rows of leds (0 and 16) here would be steps:</p>
         <ol>
           <li>Set the color channels for the colors you want for the first pixel (column) 0 (so channel one would be the pixel (0,0) and channel two would set pixel (0,16).</li>
           <li>Set the clock signal momentarily then clear, latching that color values.</li>
@@ -261,10 +276,11 @@
         <p>One of our additions to the graphic library was a new font class. We needed a smaller font in order to fit more information on the screen. Therefore, we found an <a href="http://robey.lag.net/2010/01/23/tiny-monospace-font.html">opensource 3x5 font class</a> and added it to the library. This required converting a BDF font file into a C data definition to be used by the microcontroller. To accomplish this we wrote a <a href="https://github.com/sm11963/matrix-clock/blob/master/bdf2hex/bdf2hex.py">python script</a> to take in the font definition file, parse it, and write out the hex code values that can be used as a C array definition the bitmap pixels to draw for each character. Additionally, we generalized the printing functionality such that adding new fonts will not be so difficult.</p>
 
         <h4>Matrix Library Demos</h4>
-        <!-- TODO sam-->
+
+        <p>In addition to creating the drawing libraries, we also ported and added some of the matrix display tests. As mentioned we wanted to have a standalone library. Part of that is having tests to bootstrap any user of the library. The Adafruit tests we ported test shape drawing, color spectrum, and text. We also added some of our own to test rendering images and colorlevels.</p>
 
         <h4>Clock Graphics</h4>
-        <!-- TODO sam-->
+        <p>Since we are building a wall clock system, we need to have the clock faces to display. We added a clock graphics library. This is essentially just a collection of functions that were used to create the two clock faces (digital and analog) we have created during this project but we fully intended to make it easy to swap and tune the clock faces to be customizable.</p>
 
         <h3>Handling IR Signals</h3>
         <p> To get the remote control working with our project, the idea was to be able to decode pulses sent from the remote, via an IR Receiver that would translate the signal into a digital signal. This digital signal would then be fed into the Microcontroller and decoded accordingly. Fortunately for us, the TSOP38238 IR Receiver Sensor came with a built-in differential OP-Amp, and so it would output the square pulses for us from the beginning. It was also tuned to 38 KHz, which was what our remote transmitted at. </p>
@@ -286,17 +302,24 @@
     Once everything was decoded into 1s and 0s, it was easy to then just check that the incoming address was 0x00, and translate the 8-bit opcode to a string.</p>
 
         <h3>Realtime Clock and Calender</h3>
-        <!-- TODO: sam -->
+        <p>The realtime clock and calender was very easy to setup after reading through the <a href="http://ww1.microchip.com/downloads/en/DeviceDoc/61125E.pdf">PIC32 documentation</a> and examples online. Using the plib.h functions all that needs to be done is call the corresponding RTCCOpen() function and the RTCC should initialize and be ready to provide the time. Now, this is using a very trivial setup, however. A better application would use a drift correction algorithm to calculate the errors of the 32.768KHz oscillator that drives the realtime clock. This will be discussed further in the results section.</p>
+
+        <p>In addition to simply enabling and reading the values directly from the RTCC, we added a set of date/time functions in <a href="https://github.com/sm11963/matrix-clock/blob/master/MatrixClock.X/datetime.c">datetime.c</a> to ease using the dates and converting between the Binary Coded Decimal values provided by the hardware RTCC. This also includes helpers to convert to strings to display dates.</p>
 
         <h3>Serial Interface</h3>
-        <!-- TODO: -->
+        <p>The serial interface we added to communicate with and set the time on the PIC32 is very simple. We use the Cornell Protothreads UART functions to read and write from the UART in a nice threaded protocol. We did find, however, that using the PT library to send serial data was a bit cumbersome and as such added some very convenient wrapper macros to simplify the sending of data using the PT library (these are in the serial extensions file, <a href="https://github.com/sm11963/matrix-clock/blob/master/MatrixClock.X/serial_ext.h">serial_ext.h</a>). The actual communication interface over serial consists of four messages. The PIC32 will send a "gtd" message (get time date) to the computer when it needs a time update. If the computer is connected and listening, it should respond with a time and then a date message. The time message just consists of the format: </p><blockquote>"t &lt;hours&gt;:&lt;minutes&gt;:&lt;seconds&gt;"</blockquote><p> This corresponds to the human readable time that the PIC32 should update to. The date is the same idea but the message format is:</p>
+        <blockquote>
+          "d &lt;month&gt;/&lt;day of month&gt;/&lt;year&gt;-&lt;day of week&gt;"
+        </blockquote>
+        <p>The last message that can be sent is a "BAD CMD" from the PIC32 to the computer. This indicates that a message was received that did not match either the time or date pattern. Each of these messages must be terminated by a carriage return as a end delimiter. Without a carriage return the PIC32 will read until its buffer is full and then parse the input which will result in an invalid if the max buffer does not match the specified patterns. To parse the patterns a simple sscanf is used with an appropriate format string.<p>
 
-        <h3>Python Time-Sync Application</h3>
-        <!-- TODO: sam -->
+        <h4>Python Time-Sync Application</h4>
+        <p>In addition to the code on the PIC32, we also had to have an application running on the computer to receive and respond to time/date update requests from the MCU. We wrote a <a href="https://github.com/sm11963/matrix-clock/blob/master/py-time/pytime.py">simple application</a> in Python 3.5 using <a href="https://github.com/pyserial/pyserial">PySerial</a> as the serial communication library. The appication simply waits reading the serial input until it gets a "gtd" message at which point it sends both the time and date. We found that we had to manually add delays to the serial write methods in order to avoid overflowing the PIC32s input buffer. We found that typically unthrottled writes of more than 8 characters resulted in the PIC32 UART receive interface locking up. The ensure that this does not occur under normal operation, we modified the PT UART library to check the UART overrun bit and clear it to restart the UART receiving. We suspect that we were encountering this error more that typically because our large amount of time spent in the matrix display interrupt caused the receive fifo buffer to not get read as often as it would typically.</p>
 
       </div>
       <div class="linklist"> <a name="results"></a>
         <h2>Results &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
+
         <div class="image">
           <img src="./assets/matrix_dtime.jpg" alt="RGB LED Matrix showing digital clock display." width=350 height=350>
           <img src="./assets/matrix_onwall.jpg" alt="RGB LED Matrix hanging on wall showing analog clock display." width=350 height=350>
@@ -305,26 +328,25 @@
         <div class="image">
           <img src="./assets/matrix_colorwheel.jpg" alt="" width=350px height=350px>
           <img src="./assets/matrix_colorlevels.jpg" alt="" width=350px height=350px>
-          <p class="caption"><strong>Left:</strong> The Matrix displaying a colorwheel demo (from referenced Adafruit library). <strong>Right:</strong> The Matrix displaying a demo of the 16 color intensities for each of the red, green, and blue LEDs.</p>
+          <p class="caption"><strong>Left:</strong> The Matrix displaying a colorwheel demo (from referenced Adafruit library). <strong>Right:</strong> The Matrix displaying a demo of the 16 color intensities for each of the red, green, and blue LEDs. Note that in these images especially the cell phone camera captures a stripping effect which is not visible to the naked eye.</p>
         </div>
 
         <h3>Matrix Display</h3>
-        <!-- TODO: discuss brief results -->
+        <p>The matrix display results were excellent. Due to the PIC32's faster clock speed (running everything at 40MHz so room to improve further) and memory footprint, we were able to successfully control the matrix at a refresh rate near 450Hz using roughly 30% CPU. This is the CPU time that is required to just <em>update the matrix display</em>, it does not include any time to actually draw anything to be displayed. In order to measure the time in the ISR we added test code to toggle a bit when entering and exiting the ISR then measured the times on an oscilloscope. Since there are four different control flow paths and different spacings of the ISR we measured the ISR for four interrupts and the delay between. The whole period (which corresponds to drawing a single row) takes 137 microseconds and in that time we are in the ISR for 11.6 + 8.8 + 8.0 + 8.0 = 36.4 microseconds. So therefore we are spending 36.4 / 137 = 26.6% of CPU time handling the ISR for the matrix update. Now we have to do one of these updates for each row (16 rows since we write out two rows at a time) so in order draw the entire matrix once it takes 16*137 = 2192 microseconds. This corresponds to a refresh rate of 1/0.002192 = 456Hz. This may seem extremely high since humans it is above the typical frame rate at which humans can notice. However, due to the use of binary coded modulation to get the colors and only two rows of the matrix are lit at a time, this refresh rate is necessary to make the display appear non flickery and as smooth as it is.</p>
 
-          <h4>Timing and CPU Usage</h4>
-          <!-- TODO: sam -->
+        <p>The display looks excellent visually for all colors and animations except on scenario. There is some issue with the red color input for the upper half of the matrix. When displaying bright red colors (high amount of red) in the upper half, we end of getting flickering of the red LEDs in the middle of the matrix. Experimenting with swapping ports and with other colors revealed that this is only an issue for the color red and only for the top half of the matrix. We hypothesize that it may be a voltage issue since the matrix is typically uses a logic level of 5V instead of the 3.3V of the PIC32, since we just discoved this issue recently we unfortunately, have not had the opportunity to swap in a logic level converter to see if it makes a difference but that is the next step.</p>
 
-          <h4>Appearance</h4>
-          <!-- TODO sam: mention interference, tearing and other issues.-->
 
         <h3>IR Control</h3>
         <!-- TODO: discuss usability and differences between the two remotes. Discuss interfere with other poeoples devices (like the apple remote) and how we use remote addressing to hopefully avoid this. -->
+        <p>TODO: Craig</p>
 
         <h3>Serial Interface</h3>
-        <!-- TODO sam: max rate of control about 10 ms update time & date at 57600 but at 38400 smarter design time every second and date every 20 seconds. -->
+        <p>The serial interface works wonderfully with the PIC32 after throttling send rates from the computer and checking the error bits. We now only send a character every 2 milliseconds but we only send 11 characters max with the time and 13 characters for the date. This results in a expected delay of about 22 milliseconds minimum for the time (which is more crucial since we are setting a realtime clock). It then may take additional time for the PT library to wake up the serial thread to actually process the message. We found that adding a second to the time before sending to the PIC32 generally improved the accuracy. We believe that determining the average time for the serial thread to process the message would be desirable but might be overkill since we do not require precise timing.</p>
+        <p>As an aside, before we got the RTCC on the PIC32 operational, we were able to get the serial interface sending precisely timed updates to the PIC32 to maintain the time very well. This of course has drawbacks of being very coupled to the computer and more failure points but is a good fall back mode.</p>
 
         <h3>Realtime Clock and Calender</h3>
-        <!-- TODO sam: Never measured accuracy of clock directly with a scope. Osciallator was within 1% of required frequency -->
+        <p>Our realtime clock and calender unit ended up being less accurate than desired. We did not get a chance to do precise measurements in the lab of the accuracy but we did a extrinsic test of the clock being used for a 48 hour period. For the first, 24 hours the clock started at perfectly in sync with computer time (truth value in this experiment) and was detached from the computer (no serial communication to update). We found that the time was approximately 14 seconds fast after that 24 hour period. This is a huge error of over a minute and half a week and unacceptable for the device we wanted to create. However, the second half the of the test consisted of 24 with the serial tether connected to a PC. For each checkup we made the time was perfectly in sync (as measured by the human eye). So in this case we cannot rely on the real time clock unit for any period of time greater than an hour (half a second loss estimate). We believe this error is caused by issues of packing the oscillator along with the other higher frequency control wires all in the back of the matrix unit, possibly causing interfere and disrupting the timing but without doing the proper testing with a oscilloscope it is hard to determine.</p>
 
       </div>
       <div class="linklist"> <a name="conclusions"></a>
@@ -332,19 +354,20 @@
 
         <h3>Summary</h3>
         <!-- TODO: did it meet our expectations/goals? Satisfied with result.-->
+        <p>TODO: Craig</p>
 
         <h4>Applicable Standards</h4>
-        <!-- TODO: -->
+        <p>TODO: Craig</p>
 
         <h4>Intellectual Property Considerations</h4>
           <p>We do utilize three libraries in our codebase which were written by others. The first is the Cornell <a href="http://people.ece.cornell.edu/land/courses/ece4760/PIC32/index_Protothreads.html">protothreading library</a>. Written by Bruce Land, this library contributes by adding a UART interface and threading system (adapted from the <a href="http://dunkels.com/adam/pt/">protothreads library</a> written by Adam Dunkels). We have also made modifications to this library to suit our appilication. The second library we used is the <a href="https://github.com/adafruit/RGB-matrix-Panel">Adafruit RGB Matrix Panel Library for Arduino</a>. We used this library as a means of testing and reverse engineering the interface for controlling the RGB matrix. Our our control library for the RGB matrix is heavily based on the concepts from the Adafruit library but re-written for the PIC32 architecture. Finally, we also adapted and added to the <a href="https://github.com/adafruit/Adafruit-GFX-Library">Adafruit GFX Library for Arduino</a>. We used an already adapted version of this library (adapted by Syed Tahmid Mahbub and can found at <a href="http://tahmidmc.blogspot.com/">his blog</a>). We adapted it further for the matrix as well as adding additional functions as necessary. All of these libraries are open source and have no restrictions on use provided proper referencing.</p>
           <p>We also use a bitmap font definition that is available for opensource use under the <a href="https://github.com/sm11963/matrix-clock/blob/master/bdf2hex/LICENSE.txt">MIT license</a> which we have included with our project as required.</p>
 
         <h4>Ethical Considerations</h4>
-        <!-- TODO: -->
+        <p>TODO: Craig</p>
 
         <h4>Legal Considerations</h4>
-        <!-- TODO: -->
+        <p>TODO: Craig</p>
 
       </div>
       <div class="linklist"> <a name="appendices"></a>
@@ -425,7 +448,7 @@
               <td>$0.74</td>
             </tr>
             <tr class="row2">
-              <td>Mounting backets</td>
+              <td>Mounting brackets</td>
               <td></td>
               <td>$3.00</td>
             </tr>
@@ -452,9 +475,9 @@
 
         <h3>C. Schematics</h3>
         <!-- TODO: craig please add schematics here with captions so we can refer to them -->
+        <p>TODO: Craig</p>
 
         <h3>D. Division of Labor</h3>
-        <!-- TODO: -->
 
         <ul>
           <li>Sam</li>
@@ -479,7 +502,7 @@
           <h3>Datasheets</h3>
           <!-- TODO: oscillator, IR, remote?, pic32 -->
           <ul>
-            <li><a href="datasheet.pdf">An example datasheet</a></li>
+            <li><a href="http://ww1.microchip.com/downloads/en/DeviceDoc/61125E.pdf">PIC32 RTCC</a></li>
           </ul>
         </div>
         <div class="group2">
@@ -494,6 +517,7 @@
             <li><a href="http://people.ece.cornell.edu/land/courses/ece4760/PIC32/index_TFT_display.html">Cornell TFT Display Guide and Code</a></li>
             <li><a href="http://people.ece.cornell.edu/land/courses/ece4760/PIC32/index_Protothreads.html">Cornell Protothread Library</a></li>
             <li><a href="http://robey.lag.net/2010/01/23/tiny-monospace-font.html">3x5 Bitmap Font</a></li>
+            <li><a href="https://github.com/pyserial/pyserial">PySerial</a></li>
           </ul>
         </div>
       </div>
