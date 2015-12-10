@@ -84,7 +84,7 @@
           <div class="linklist"> <a name="design"></a>
             <h2>High Level Design &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
             <h3>Overview</h3>
-            <!-- TODO -->
+            <p>Our project runs off of a PIC32MX250F128B microcontroller, which handles all the controls and processing of data for the 32x32 LED Matrix. An Oscillator crystal handles the realtime-keeping component of the clock, and an IR reciever handles the input from our IR Remote Controller. We also have a serial connection to a PC so we can update the time to match the internet-regulated standards that most PCs sync with on a daily basis. All of these components come together to create the LED Matrix Clock we have designed, and we will go into more detail on these below.</p>
 
             <h4>Rationale</h4>
             <p>The idea for this project arose from the growing popularity of home appliances being both programmable and connected to the internet. As technology continues to evolve and become cheaper, more and more homes and buildings are incorporating these appliances that can be controlled through the internet, such as the Nest home heating unit and the Phillips Hue lighting system. We believe that this LED clock would be a great addition to a home that utilizes internet connected components. The our display could provide a central status hub that reports the status of various other components in the house as well add to a modern technological atmosphere.</p>
@@ -99,11 +99,13 @@
             <h4>Hardware and Software Trade-offs</h4>
             <p>Our project relies heavily on software. One major trade-off we had to decided between hardware and software was for the time keeping. We ran into an issue with the Pic32 RTCC module running too fast. It ended up being an issue of capacitance affecting the crystal (an affect of working on a breadboard we suspect). However, at that time we decided to try and use the UART serial interface to power all time keeping ability. In other words, a computer with a serial connection would send time updates over UART every second (or faster) in order for our system to update the display. We discovered that this is possible (we managed to get very good accuracy using this method). In the end though, once we fix the oscillator issue, we decided to use the pic32's RTCC unit instead. The benefits of this being that the system is now less coupled to a serial tether to a computer. Relying on software on the computer to send the time updates meant that if you turned off your computer, software on either the computer or the microcontroller failed, or a serial device lost connection the clock would stop telling time. Meanwhile, the computer clock is typically internet synced and always accurate but the major reliability issues spurred us to pick the best of both worlds where the RTCC is used to keep time but it confirms the time with the computer periodically if a serial connection is present.</p>
             <h4>High Level Block Diagram</h4>
-            <!-- TODO: Create block diagram just showing the various components (matrix, pic, UART, python application, IR receiver) -->
-            <!-- might be unecessary if we have a good annotated hardware picturein the hardware section -->
-
+            <p>The block diagram below shows how the various components of our project interact with each other on the highest level. The Python Application handles the syncronization of time with the PC's system time, but all data from the PC is eventually fed back to the PIC32 to be processed.</p>
+			<div class="image">
+				<a href="./assets/high_level.png"><img src="./assets/high_level.png" width="500" height="400"></a>
+			</div>
             <h4>User Interface</h4>
-            <!-- TODO: brief overview of controls, and maybe mention brief overview of how we wanted it to be controlled. -->
+            <p>The user interface for our project consisted of an Adafruit Mini IR Remote, which would control the clock's various functions based upon which button was pressed. Additionally, the serial interface would allow for the time to be manually set via a UART console. As the project stands now, the IR remote controls the toggling between the Digital and Analog views of the clock as well as between each of the various test images seen in the Results section below. Simply press the Left and Right arrow keys to change between the different views.</p>
+			<p>Ideally, we would have used the IR Remote to control a menu interface that would come up on the LED Matrix, but due to time constaints, this feature was not implemented. However, it would be very simple to add on to the current control system just by adding in additional command handlers for the various buttons on the remote. </p>
 
           </div>
       </div>
@@ -118,23 +120,26 @@
       <a href="./assets/matrix_hardware_annotated.png"><img src="./assets/matrix_hardware_annotated.png" width=720/></a>
       <p class="caption">Back side of the matrix clock showing the various highlighted hardware components. <strong>Green</strong> The Microstick II housing the PIC32 microprocessor. <strong>Red</strong> The solderboard circuit for the realtime clock oscillator. <strong>Magenta</strong> The connection for the RGB LED matrix display. <strong>Yellow</strong> The serial to usb adaptor. <strong>Cyan</strong> The IR receiver mounted to be visible from the front of the matrix.</p>
     </div>
-
+	<div class="image">
+		<img src="./assets/remotes.jpg" alt="Remotes" height="300" width="300">
+		<p class="caption">These two remotes are what we configured our IR Sensor software to be compatable with. We rejected all other IR remote addresses.</p>
+	</div>
 		<p> The only major circuitry added for this project was the oscillator circuit, which managed the Real-Time clock for timekeeping. The schematic for this circuit is below, with all the pins connected to the PIC32MX250F128B relevant to it.</p>
-		<img src="assets/oscillator_schematic.png" alt="Oscillator Schematic" height="400" width="400">
-		<p> The IR circuit was also relatively simple, requiring only the TSOP38238 IR Receiver Sensor and a 330 Ohm resistor to protect the PIC32 in case of a surge.</p>
+		
+		
 		<p> All other Pin connections to the MCU are specified here in the table below. </p>
 		<table style="width:100%">
 			<tr>
-				<td>Device</td>
-				<td>Pin(s)</td>
-				<td>MCU Pin(s)</td>
-				<td>Function</td>
+				<th>Device</th>
+				<th>Pin(s)</th>
+				<th>MCU Pin(s)</th>
+				<th>Function</th>
 			</tr>
 			<tr>
 				<td>IR Reciever</td>
 				<td>SIGNAL OUT</td>
 				<td>13</td>
-				<td>TODO: Craig fill this out</td>
+				<td>Input Capture 1</td>
 			</tr>
 			<tr>
 				<td>32.768 kHz Oscillator</td>
@@ -143,7 +148,53 @@
 				<td>SOSCI</td>
 			</tr>
 			<tr>
-				<td>
+				<td>LED Matrix</td>
+				<td>R1, G1, B1 (color data)</td>
+				<td>4-6</td>
+				<td>IO</td>
+			</tr>
+			<tr>
+				<td>LED Matrix</td>
+				<td>R2, G2, B2 (color data)</td>
+				<td>16-18</td>
+				<td>IO</td>
+			</tr>
+			<tr>
+				<td>LED Matrix</td>
+				<td>CLK (data clock)</td>
+				<td>2</td>
+				<td>IO</td>
+			</tr>
+			<tr>
+				<td>LED Matrix</td>
+				<td>LAT (data latch)</td>
+				<td>3</td>
+				<td>IO</td>
+			</tr>
+			<tr>
+				<td>LED Matrix</td>
+				<td>OE (output enable)</td>
+				<td>3</td>
+				<td>IO</td>
+			</tr>
+			<tr>
+				<td>LED Matrix</td>
+				<td>A, B, C, D (row select)</td>
+				<td>7, 14, 25, 26</td>
+				<td>IO</td>
+			</tr>
+			<tr>
+				<td>UART</td>
+				<td>TX</td>
+				<td>22</td>
+				<td>UART 2 Recieve</td>
+			</tr>
+			<tr>
+				<td>UART</td>
+				<td>RX</td>
+				<td>21</td>
+				<td>UART 2 Transmit</td>
+			</tr>
 		</table>
 
         <!-- TODO: image of remotes (image already in assets) -->
@@ -152,13 +203,21 @@
         <!-- TODO: Describe table of RGB Matrix connections and briefly what each connection does. Reference adafruit rgb matrix tutorial-->
 
         <h4>IR Sensor</h4>
-        <!-- TODO: Describe IR connection, schematic -->
+		<p> The IR circuit was also relatively simple, requiring only the TSOP38238 IR Receiver Sensor and a 330 Ohm resistor to protect the PIC32 in case of a surge. The IR reciever simply outputs pulse signals on Pin 13, that we pick up in software as described in the Software section below. Additionally, we made it compatable with the Adafruit Mini IR Remote as well as a standard Apple Slideshow Remote.</p>
+        <div class="image">
+			<a href="./assets/ir_circuit.png"><img src="./assets/ir_circuit.png" alt="Ir Circuit" height="400" width="500"></a>
+			<p class="caption">IR Circuit. The first pin of the TSOP38238 is what outputs the incoming pulses from the remote, and it goes to our MCU. The second and third pins go to ground and 3.3Vdd respectively.</p>
+		</div>
 
         <h4>Serial Connection</h4>
         <p>The serial to usb connector we used was the <a href="https://www.sparkfun.com/products/9716">Sparkfun FTDI Basic Breakout</a>. We use this chip due to its compact size and seperation from a USB cable so that we can use the clock without a serial tether and not have to manage the cable. The TX/RX is connected to the PIC32 microcontroller on pins 22 and 21, respectively with the appropriate PPS configuration selected on the microcontroller.</p>
 
         <h4>External Oscillator</h4>
-        <!-- TODO: Describe external oscillator -->
+		<p>The circuit for the External Oscillator is below. This manages the Real-Time clock for timekeeping whenever a connection to the PC is not present. This circuit was gaciously donated to us by our classmate Udit Gupta. In short, it creates a 1 second pulse signal, which we use as a clock to handle our second-counting via the input on Pin 11.</p>
+		<div class="image">
+			<a href="./assets/oscillator_schematic.png"><img src="assets/oscillator_schematic.png" alt="Oscillator Schematic" height="400" width="400"></a>
+			<p class="caption">Oscillator Circuit. The 32.768 kHz crystal creates pulses, which we then modify using the RC delays to create a 1 second time period.</p>
+		</div>
 
       </div>
       <div class="linklist"> <a name="software"></a>
@@ -214,7 +273,7 @@
         <p> To this end, we decided to utilize the same ideas we used in the Lab 1 Capacitance Meter. We would make an ISR that would trigger pulse captures, and then when we were certain that an entire pulse was captured, we would decode it. To do this, we had to utilize an Input Capture on RB13 of the PIC32. The setup for this was just as it was in Lab 1, except we trigger the timer capture on every single edge (rising and falling), because for the initialization pulse, we need both the high and the low widths. Once I had captured all the pulse times, I would then store them in an array for decoding. The following image is from the beginning stages of my work with this. Basically, the values you see in the column marked “LOW” are the timer counts for when the signal pulse was low, “HIGH” when it was high. I had set the timer with a prescalar of 64 on a 40 MHz clock, so each count corresponds to about 1.6e-6 seconds. This is the raw timer counts data, and after messing around with it for a while, I determined the following threshold values for various pulses:</p>
         <div class="image">
           <img src="assets/ir_test.jpg" alt="IR Pulse Counts on TFT" height="420" width="280">
-          <p class="caption">TODO: Write my caption (or also make me with one of the floatingimagewrapper classes</p>
+          <p class="caption">This test program shows all the timer counts for each pulse. The red numbers are the decoded values from each pulse based on the values below.</p>
         </div>
         <ul>
           <li>Initialization Pulse: HIGH 5550 – 5850 counts followed by LOW 2650 – 2950 counts</li>
@@ -400,11 +459,15 @@
         <ul>
           <li>Sam</li>
           <ul>
-            <li>TODO</li>
+            <li>Handled all LED Matrix library rewriting</li>
+			<li>Wrote Control program for LED Matrix</li>
+			<li>Added Oscillator Circuit</li>
+			<li>
           </ul>
           <li>Craig</li>
           <ul>
-            <li>TODO</li>
+            <li>Created the IR Circuit</li>
+			<li>Obtained IR opcodes, handled all decoding of incoming IR signals</li>
           </ul>
         </ul>
 
