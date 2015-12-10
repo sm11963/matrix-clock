@@ -1,4 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!-- HTML and style adapted from http://people.ece.cornell.edu/land/courses/ece4760/FinalProjects/f2014/skg73_wfh42/skg73_wfh42/  to match the Cornell ECE webpage layout -->
 <html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta http-equiv="Content-Language" content="en-us">
@@ -69,26 +70,26 @@
 
 		<div id="introblurb">
 
-    <div class="image">
-      <a href="./assets/matrix_analog_lg.gif"><img src="./assets/matrix_analog_lg.gif" /></a>
-      <p class="caption">One minute of the clocks analog display.</p>
-    </div>
-
-
 		<h2>Introduction &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
 		<p> In today's world of rushed schedules, time is something a ton of people are in constant need of keeping track of. A very good method for keeping track of the time is to have a wall clock. But what if you want a clock that's different from all the others, or something that will stand out and make your friends say "Hey, that's pretty awesome!" That's precisely what we set out to make when we undertook this project. Using the PIC32MX250F128B microcontroller, we built a wall clock that is made from a 32x32 LED Matrix. The clock comes with an IR remote that can control a variety of customization options and smaller features such as a stopwatch and alarm. It also has a serial channel that can connect to a PC to update the time to match your PC internet synced time.
 		</p>
 		<p>This project was completed over a five-week period for the ECE 4760: Designing with Microcontrollers class under Professor Bruce Land.
 		</p>
 
+    <div class="image">
+      <a href="./assets/matrix_analog_lg.gif"><img src="./assets/matrix_analog_lg.gif" /></a>
+      <p class="caption">One minute of the clocks analog display from the final result of the project.</p>
+    </div>
+
           <div class="linklist"> <a name="design"></a>
             <h2>High Level Design &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
             <h3>Overview</h3>
+            <!-- TODO -->
 
             <h4>Rationale</h4>
             <p>The idea for this project arose from the growing popularity of home appliances being both programmable and connected to the internet. As technology continues to evolve and become cheaper, more and more homes and buildings are incorporating these appliances that can be controlled through the internet, such as the Nest home heating unit and the Phillips Hue lighting system. We believe that this LED clock would be a great addition to a home that utilizes internet connected components. The our display could provide a central status hub that reports the status of various other components in the house as well add to a modern technological atmosphere.</p>
 
-            <p>While we did not accomplish the ambitious goal of creating an internet connected centeralized display this semester, we did build a self contained and novel device that works as functional clock. This is the first step in creating a more useful display and as will be discussed later on, hopefully the start of an on going project to add upon this clock that will make it go above and beyond the exciting wall clock.</p>
+            <p>While we did not accomplish the ambitious goal of creating an internet connected centralized display this semester, we did build a self contained and novel device that works as functional clock. This is the first step in creating a more useful display and as will be discussed later on, hopefully the start of an on going project to add upon this clock that will make it go above and beyond the exciting wall clock.</p>
 
             <h4>Standards</h4>
             <p>Our project does not (as of this time) utilize RF communications or other regulated technologies, and therefore we could not find any pertinent standards to reference. We had anticipated finding standards for infrared remote technology but again, while we did find some standards used by various companies, we did not find any widely adopted standards that would be relevant to include with our project.</p>
@@ -111,7 +112,15 @@
         <h2>Hardware &nbsp;&nbsp;&nbsp;<font size="-1"><strong><a href="#top">top</a></strong></font></h2>
 
         <h3>Hardware Overview</h3>
-		<p> The only serious circuitry for this project was the oscillator circuit, which managed the Real-Time clock for timekeeping. The schematic for this circuit is below, with all the pins connected to the PIC32MX250F128B relevant to it.</p>
+
+        <p>The hardware for this project included several components. The most notable component is the Adafruit 32x32 RGB LED matrix display. The construction of our final product revolved around getting all the hardware bundled together on the back of the matrix so that it could be hung on a wall or stood up on a surface. In addition to the matrix and its control components (displayed in the image below) we also used two IR remote units for remote control.</p>
+
+    <div class="image">
+      <a href="./assets/matrix_hardware_annotated.png"><img src="./assets/matrix_hardware_annotated.png" width=720/></a>
+      <p class="caption">Back side of the matrix clock showing the various highlighted hardware commonents. <strong>Green</strong> The Microstick II housing the PIC32 microprocessor. <strong>Red</strong> The solderboard circuit for the realtime clock oscillator. <strong>Magenta</strong> The connection for the RGB LED matrix display. <strong>Yellow</strong>The serial to usb adaptor.<strong>Cyan</strong>The IR receiver mounted to be visible from the front of the matrix.</p>
+    </div>
+
+		<p> The only major circuitry added for this project was the oscillator circuit, which managed the Real-Time clock for timekeeping. The schematic for this circuit is below, with all the pins connected to the PIC32MX250F128B relevant to it.</p>
 		<img src="assets/oscillator_schematic.png" alt="Oscillator Schematic" height="400" width="400">
 		<p> The IR circuit was also relatively simple, requiring only the TSOP38238 IR Receiver Sensor and a 330 Ohm resistor to protect the PIC32 in case of a surge.</p>
 		<p> All other Pin connections to the MCU are specified here in the table below. </p>
@@ -138,8 +147,6 @@
 				<td>
 		</table>
 
-
-        <!-- TODO: image of hardware with labels (image already in assets)-->
         <!-- TODO: image of remotes (image already in assets) -->
 
         <h4>RGB Matrix</h4>
@@ -149,7 +156,7 @@
         <!-- TODO: Describe IR connection, schematic -->
 
         <h4>Serial Connection</h4>
-        <!-- TODO: sam Describe serial connector we are using -->
+        <p>The serial to usb connector we used was the <a href="https://www.sparkfun.com/products/9716">Sparkfun FTDI Basic Breakout</a>. We use this chip due to its compact size and seperation from a USB cable so that we can use the clock without a serial tether and not have to manage the cable. The TX/RX is connected to the PIC32 microcontroller on pins 22 and 21, respectively with the appropriate PPS configuration selected on the microcontroller.</p>
 
         <h4>External Oscillator</h4>
         <!-- TODO: Describe external oscillator -->
@@ -398,6 +405,15 @@
     </div><!-- end maincontent -->
   </div><!-- end content -->
 </div><!-- end wrapper -->
+
+<div id="footerwrap">
+  <div id="footer">
+    <div id="copyright">
+      <div class="copyright">Website template adapted with permission from Sahil Gutpta &amp; Forrest Henderson</div>
+      <div class="copyright">Layout &copy;2014 Cornell University</div>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
